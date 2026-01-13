@@ -79,7 +79,7 @@ services:
     networks:
       - bank_gateway_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${BANK_GATEWAY_DB_USERNAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${BANK_GATEWAY_DB_USERNAME} -d ${BANK_GATEWAY_DB_DATABASE}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -126,7 +126,7 @@ services:
     networks:
       - erstebank_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -219,7 +219,7 @@ services:
     networks:
       - psp_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
       interval: 10s
       timeout: 5s
       retries: 5
