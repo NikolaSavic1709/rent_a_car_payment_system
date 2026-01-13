@@ -1,0 +1,113 @@
+/* ------------------------------------------------------------------------------------------------------ Buttons */
+.button {
+    font-family: "Parkinsans", sans-serif !important;
+    padding: 10px !important;
+    height: var(--InputHeight) !important;
+    min-width: 80px !important;
+    width: fit-content;
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px;
+    font-size: 16px !important;
+    font-weight: 600;
+    border-radius: 0 !important;
+    border: none;
+}
+
+.raisedButton {
+    background-color: rgb(var(--PrimaryColor)) !important;
+    color: black !important;
+    font-weight: 600 !important;
+    transition: background-color 100ms ease-out;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.raisedButton:hover {
+    background-color: rgba(var(--PrimaryColor), 0.8) !important;
+}
+
+.raisedButton:disabled {
+    background-color: rgba(var(--SecondaryColor), 0.4) !important;
+    color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ------------------------------------------------------------------------------------------------------ Inputs */
+.inputWrapper {
+    /* width: 250px; */
+    border: 2px solid rgba(var(--DarkGray), 0.6);
+    transition: border-color 0.1s, color 0.1s;
+    height: var(--InputHeight);
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.inputWrapper:focus-within { border-color:  rgb(var(--SecondaryColor)); }
+.inputWrapper:hover:not(:focus-within) { border-color: rgb(var(--PrimaryColor)); }
+.input {
+    font-family: "Parkinsans", sans-serif;
+    width: 100%;
+    margin: 0 5px 0 5px;
+    border: none;
+    outline: none;
+    background: none;
+    font-size: 16px;
+}
+.input:hover { background-color: transparent; }
+
+.form {
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+    width: 100%;
+}
+
+.doubleFormLine {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}
+
+.inputIcon {
+    opacity: 0.6;
+    margin-left: 2px;
+}
+
+.inputIcon {
+    opacity: 0.6;
+    margin-left: 2px;
+}
+
+.inputIcon:hover {
+    color: rgb(var(--PrimaryColor)) !important;
+    opacity: 1;
+    cursor: pointer;
+}
+
+/* ------------------------------------------------------------------------------------------------------ Chips */
+.bigChip {
+    border: 2px solid rgba(var(--DarkGray), 0.6);
+    transition: border-color 0.1s, color 0.1s;
+    height: var(--InputHeight);
+    display: flex;
+    padding: 10px;
+    align-items: center;
+}
+
+.bigChip:hover {
+    border-color:  rgb(var(--PrimaryColor));
+    background-color: rgba(var(--PrimaryColor), 0.1);
+    cursor: pointer;
+}
+
+.bigChipSelected {
+    background-color: rgba(var(--PrimaryColor), 1);
+    border: none;
+}
+
+.bigChipSelected:hover {
+    background-color: rgba(var(--PrimaryColor), 0.6);
+}

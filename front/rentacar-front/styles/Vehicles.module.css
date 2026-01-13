@@ -1,0 +1,161 @@
+/* ------------------------------------------------------------ Vehicle Tile*/
+.wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    align-items: start; 
+}
+
+.vehicleWrapper {
+    border: solid 2px rgba(var(--PrimaryColor), 1);
+    padding: var(--TilePadding);
+    border-radius: var(--Radius);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: background-color 0.3s ease, border-color 0.2s ease; 
+}
+
+.vehicleWrapper:hover {
+    background-color: rgba(var(--PrimaryColor), 1);
+    cursor: pointer;
+}
+
+.vehicleWrapper:hover .vehicleTitle,
+.vehicleWrapper:hover .vehicleDescription {
+    color: white;
+}
+
+.headerWrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.headerItem {
+    background-color: rgba(var(--NavbarBackgroundColor), 1);
+    font-size: 28px;
+    padding: 10px;
+    border-radius: 50px;
+    width: fit-content;
+}
+
+.headerItemText {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.headerItemInvalidText {
+    color: rgba(var(--ErrorColor), 1);
+}
+
+.vehicleTitle {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.vehicleWrapper .vehicleDescription {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    line-height: 25px;
+    height: 100px;
+    max-height: 100px;
+    transition: max-height 0.5s ease, padding 2s ease;
+}
+
+.vehicleWrapper.isViewOnly:hover .vehicleDescription {
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    height: auto; 
+    min-height: 100px;
+    max-height: 1000px;    
+}
+
+.vehicleWrapper.isViewOnly:hover {
+    background-color: transparent;
+    cursor: default;
+}
+
+.vehicleWrapper.isViewOnly:hover .vehicleTitle,
+.vehicleWrapper.isViewOnly:hover .vehicleDescription {
+    color: black;
+}
+
+/* ----------------------------------------------------------------- Details page*/
+/* Details component */
+.vehicleDetailsPageTemplate {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 25px;
+}
+
+.categoryDescriptionWrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 5px;
+}
+
+.categoryDescriptionext {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.vehicleDesription {
+    font-size: 18px;
+}
+
+/* Price component */
+.priceDaysWrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.priceDesciption {
+    font-size: 18px;
+}
+
+.priceText {
+    font-size: 22px;
+    font-weight: 600;
+}
+
+/* Payment component */
+.paymentsChipsWrapper {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    height: auto;
+}
+
+.paymentChip {
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px !important;
+    gap: 5px;
+}
+
+.chipInactive {
+    border: solid 2px rgba(var(--DarkGray), 1);
+    color: rgba(var(--DarkGray));
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px !important;
+    gap: 5px;
+}
+
+/* ----------------------------------------------------------------- Creation*/
+.doubleInputWrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}

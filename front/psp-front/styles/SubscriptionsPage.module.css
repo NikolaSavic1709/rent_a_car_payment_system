@@ -1,0 +1,17 @@
+.wrapper {
+    width: 350px;
+    display: grid;
+    gap: 8px;
+}
+
+.rowWrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: auto;
+    gap: 8px;
+}
+
+.description {
+    font-size: 12px;
+    max-width: 350px;
+}
