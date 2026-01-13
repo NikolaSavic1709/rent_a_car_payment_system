@@ -115,10 +115,11 @@ export default function CardPage() {
                     </div>
                     <div className={style.rowWrapper}>
                         <div className={`${formStyle.inputWrapper} ${style.inputWrapper} w-full`}>
-                            <div className={style.monthYearWrapper}>
+                            <div className={style.monthYearWrapper} style={{ display: 'flex' }}>
                                 <input
                                     className={formStyle.input}
                                     value={form.month}
+                                    style={{ width: '20%' }}
                                     placeholder='MM'
                                     onChange={handleMonthChange}
                                     maxLength={2}
@@ -128,6 +129,7 @@ export default function CardPage() {
                                 <input
                                     className={formStyle.input}
                                     value={form.year}
+                                    style={{ width: '20%' }}
                                     placeholder='YY'
                                     onChange={handleYearChange}
                                     maxLength={2}

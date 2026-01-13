@@ -20,7 +20,7 @@ services:
 
 
   psql_webshop:
-    image: postgres:15-bookworm
+    image: postgres:15
     environment:
       POSTGRES_DB: ${WEBSHOP_DB_DATABASE}
       POSTGRES_USER: ${WEBSHOP_DB_USERNAME}
