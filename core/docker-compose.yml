@@ -1,0 +1,324 @@
+version: '3.8'
+
+services:
+  # nginx:
+  #   build:
+  #     context: ./nginx
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/resources:/var/www/resources
+  #     - ./nginx/log:/var/log/nginx/enc
+  #   environment:
+  #     - ENCRYPTION_PASSWORD=${ENCRYPTION_PASSWORD}
+  #   depends_on:
+  #     - go_app
+  #   networks:
+  #     - app_network
+
+
+  psql_webshop:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${WEBSHOP_DB_DATABASE}
+      POSTGRES_USER: ${WEBSHOP_DB_USERNAME}
+      POSTGRES_PASSWORD: ${WEBSHOP_DB_PASSWORD}
+    ports:
+      - "${WEBSHOP_DB_PORT}:5432"
+    volumes:
+      - pgdata_webshop:/var/lib/postgresql/data
+    networks:
+      - webshop_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${WEBSHOP_DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  webshop_service:
+    build:
+      context: ./webshop
+      dockerfile: Dockerfile
+    environment:
+      PORT: ${WEBSHOP_PORT}
+      DB_HOST_PORT: ${DB_HOST_PORT}
+      APP_ENV: ${WEBSHOP_APP_ENV}
+      DB_PORT: ${WEBSHOP_DB_PORT}
+      DB_HOST: ${WEBSHOP_DB_HOST}
+      DB_DATABASE: ${WEBSHOP_DB_DATABASE}
+      DB_USERNAME: ${WEBSHOP_DB_USERNAME}
+      DB_PASSWORD: ${WEBSHOP_DB_PASSWORD}
+      DB_SCHEMA: ${WEBSHOP_DB_SCHEMA}
+    # deploy:
+    #   replicas: 3
+    # ports:
+    #   - "8080-8082:8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      psql_webshop:
+        condition: service_healthy
+    networks:
+      - webshop_network
+      - shared_network
+
+
+
+  psql_bank_gateway:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${BANK_GATEWAY_DB_DATABASE}
+      POSTGRES_USER: ${BANK_GATEWAY_DB_USERNAME}
+      POSTGRES_PASSWORD: ${BANK_GATEWAY_DB_PASSWORD}
+    ports:
+      - "${BANK_GATEWAY_DB_PORT}:5432"
+    volumes:
+      - pgdata_bank_gateway:/var/lib/postgresql/data
+    networks:
+      - bank_gateway_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${BANK_GATEWAY_DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  bank_gateway_service:
+    build:
+      context: ./blueprint/bank_gateway_microservice
+      dockerfile: Dockerfile
+    environment:
+      PORT: ${BANK_GATEWAY_PORT}
+      DB_HOST_PORT: ${DB_HOST_PORT}
+      APP_ENV: ${BANK_GATEWAY_APP_ENV}
+      DB_PORT: ${BANK_GATEWAY_DB_PORT}
+      DB_HOST: ${BANK_GATEWAY_DB_HOST}
+      DB_DATABASE: ${BANK_GATEWAY_DB_DATABASE}
+      DB_USERNAME: ${BANK_GATEWAY_DB_USERNAME}
+      DB_PASSWORD: ${BANK_GATEWAY_DB_PASSWORD}
+      DB_SCHEMA: ${BANK_GATEWAY_DB_SCHEMA}
+    # deploy:
+    #   replicas: 3
+    # ports:
+    #   - "8080-8082:8080"
+    ports:
+      - "8081:8080"
+    depends_on:
+      psql_bank_gateway:
+        condition: service_healthy
+    networks:
+      - bank_gateway_network
+      - shared_network
+
+
+
+  psql_erstebank:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${ERSTEBANK_DB_PORT}:5432"
+    volumes:
+      - pgdata_erstebank:/var/lib/postgresql/data
+    networks:
+      - erstebank_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  erstebank_service:
+    build:
+      context: ./blueprint/erstebank_microservice
+      dockerfile: Dockerfile
+    environment:
+      PORT: ${PORT}
+      DB_HOST_PORT: ${DB_HOST_PORT}
+      APP_ENV: ${APP_ENV}
+      DB_PORT: ${ERSTEBANK_DB_PORT}
+      DB_HOST: ${ERSTEBANK_DB_HOST}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_SCHEMA: ${DB_SCHEMA}
+    # deploy:
+    #   replicas: 3
+    # ports:
+    #   - "8080-8082:8080"
+    ports:
+      - "8082:8080"
+    depends_on:
+      psql_bank_gateway:
+        condition: service_healthy
+    networks:
+      - erstebank_network
+      - shared_network
+
+
+
+  # psql_pcc:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_DB: ${DB_DATABASE}
+  #     POSTGRES_USER: ${DB_USERNAME}
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD}
+  #   ports:
+  #     - "${PCC_DB_PORT}:5432"
+  #   volumes:
+  #     - pgdata_pcc:/var/lib/postgresql/data
+  #   networks:
+  #     - pcc_network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # pcc_service:
+  #   build:
+  #     context: ./blueprint/pcc_microservice
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     PORT: ${PORT}
+#  DB_HOST_PORT: ${DB_HOST_PORT}
+  #     APP_ENV: ${APP_ENV}
+  #     DB_PORT: ${PCC_DB_PORT}
+  #     DB_HOST: ${PCC_DB_HOST}
+  #     DB_DATABASE: ${DB_DATABASE}
+  #     DB_USERNAME: ${DB_USERNAME}
+  #     DB_PASSWORD: ${DB_PASSWORD}
+  #     DB_SCHEMA: ${DB_SCHEMA}
+  #   # deploy:
+  #   #   replicas: 3
+  #   # ports:
+  #   #   - "8080-8082:8080"
+  #   ports:
+  #     - "8083:8080"
+  #   depends_on:
+  #     psql_bank_gateway:
+  #       condition: service_healthy
+  #   networks:
+  #     - pcc_network
+#    - shared_network
+
+  
+  psql_psp:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${PSP_DB_PORT}:5432"
+    volumes:
+      - pgdata_psp:/var/lib/postgresql/data
+    networks:
+      - psp_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  psp_service:
+    build:
+      context: ./blueprint/psp_microservice
+      dockerfile: Dockerfile
+    environment:
+      PORT: ${PORT}
+      DB_HOST_PORT: ${DB_HOST_PORT}
+      APP_ENV: ${APP_ENV}
+      DB_PORT: ${PSP_DB_PORT}
+      DB_HOST: ${PSP_DB_HOST}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_SCHEMA: ${DB_SCHEMA}
+    # deploy:
+    #   replicas: 3
+    # ports:
+    #   - "8080-8082:8080"
+    ports:
+      - "8084:8080"
+    depends_on:
+      psql_bank_gateway:
+        condition: service_healthy
+    networks:
+      - psp_network
+      - shared_network
+
+
+
+  # psql_unicredit:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_DB: ${DB_DATABASE}
+  #     POSTGRES_USER: ${DB_USERNAME}
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD}
+  #   ports:
+  #     - "${UNICREDIT_DB_PORT}:5432"
+  #   volumes:
+  #     - pgdata_unicreditbank:/var/lib/postgresql/data
+  #   networks:
+  #     - unicredit_network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # unicredit_service:
+  #   build:
+  #     context: ./blueprint/unicreditbank_microservice
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     PORT: ${PORT}
+#  DB_HOST_PORT: ${DB_HOST_PORT}
+  #     APP_ENV: ${APP_ENV}
+  #     DB_PORT: ${UNICREDIT_DB_PORT}
+  #     DB_HOST: ${UNICREDIT_DB_HOST}
+  #     DB_DATABASE: ${DB_DATABASE}
+  #     DB_USERNAME: ${DB_USERNAME}
+  #     DB_PASSWORD: ${DB_PASSWORD}
+  #     DB_SCHEMA: ${DB_SCHEMA}
+  #   # deploy:
+  #   #   replicas: 3
+  #   # ports:
+  #   #   - "8080-8082:8080"
+  #   ports:
+  #     - "8085:8080"
+  #   depends_on:
+  #     psql_bank_gateway:
+  #       condition: service_healthy
+  #   networks:
+  #     - unicredit_network
+#    - shared_network
+
+
+networks:
+  shared_network:
+    driver: bridge
+  webshop_network:
+    driver: bridge
+  bank_gateway_network:
+    driver: bridge
+  erstebank_network:
+    driver: bridge
+  pcc_network:
+    driver: bridge
+  psp_network:
+    driver: bridge
+  unicredit_network:
+    driver: bridge
+
+volumes:
+    pgdata_webshop:
+    pgdata_bank_gateway:
+    pgdata_pcc:
+    pgdata_psp:
+    pgdata_erstebank:
+    pgdata_unicreditbank:

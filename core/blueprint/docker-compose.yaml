@@ -1,0 +1,162 @@
+version: '3.8'
+
+services:
+  bank_gateway_service:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "${BANK_GATEWAY_PORT}:8080"
+    environment:
+      - APP_ENV=${APP_ENV}
+      - BANK_GATEWAY_DB_HOST=${BANK_GATEWAY_DB_HOST}
+      - BANK_GATEWAY_DB_PORT=${BANK_GATEWAY_DB_PORT}
+      - BANK_GATEWAY_DB_DATABASE=${BANK_GATEWAY_DB_DATABASE}
+      - BANK_GATEWAY_DB_USERNAME=${BANK_GATEWAY_DB_USERNAME}
+      - BANK_GATEWAY_DB_PASSWORD=${BANK_GATEWAY_DB_PASSWORD}
+      - BANK_GATEWAY_DB_SCHEMA=${BANK_GATEWAY_DB_SCHEMA}
+    depends_on:
+      bank_gateway_db:
+        condition: service_healthy
+
+  bank_gateway_db:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${BANK_GATEWAY_DB_DATABASE}
+      POSTGRES_USER: ${BANK_GATEWAY_DB_USERNAME}
+      POSTGRES_PASSWORD: ${BANK_GATEWAY_DB_PASSWORD}
+    ports:
+      - "${BANK_GATEWAY_DB_PORT}:5432"
+    volumes:
+      - bank_gateway_psql_data:/var/lib/postgresql/data
+    healthcheck:
+      # test: ["CMD", "pg_isready", "-h", "localhost"]
+      test: ["CMD", "pg_isready", "-U", "${BANK_GATEWAY_DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # pcc_service:
+  #   build:
+  #     context: ./pcc_microservice
+  #   ports:
+  #     - "${PCC_PORT}:8080"
+  #   environment:
+  #     - APP_ENV=${APP_ENV}
+  #     - PCC_DB_HOST=${PCC_DB_HOST}
+  #     - PCC_DB_PORT=${PCC_DB_PORT}
+  #     - PCC_DB_DATABASE=${PCC_DB_DATABASE}
+  #     - PCC_DB_USERNAME=${PCC_DB_USERNAME}
+  #     - PCC_DB_PASSWORD=${PCC_DB_PASSWORD}
+  #     - PCC_DB_SCHEMA=${PCC_DB_SCHEMA}
+  #   depends_on:
+  #     - pcc_db
+
+  # pcc_db:
+  #   image: postgres:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: ${PCC_DB_DATABASE}
+  #     POSTGRES_USER: ${PCC_DB_USERNAME}
+  #     POSTGRES_PASSWORD: ${PCC_DB_PASSWORD}
+  #   ports:
+  #     - "${PCC_DB_PORT}:5432"
+  #   volumes:
+  #     - pcc_psql_data:/var/lib/postgresql/data
+
+  # erstebank_service:
+  #   build:
+  #     context: ./erstebank_microservice
+  #   ports:
+  #     - "${ERSTEBANK_PORT}:8080"
+  #   environment:
+  #     - APP_ENV=${APP_ENV}
+  #     - ERSTEBANK_DB_HOST=${ERSTEBANK_DB_HOST}
+  #     - ERSTEBANK_DB_PORT=${ERSTEBANK_DB_PORT}
+  #     - ERSTEBANK_DB_DATABASE=${ERSTEBANK_DB_DATABASE}
+  #     - ERSTEBANK_DB_USERNAME=${ERSTEBANK_DB_USERNAME}
+  #     - ERSTEBANK_DB_PASSWORD=${ERSTEBANK_DB_PASSWORD}
+  #     - ERSTEBANK_DB_SCHEMA=${ERSTEBANK_DB_SCHEMA}
+  #   depends_on:
+  #     - erstebank_db
+
+  # erstebank_db:
+  #   image: postgres:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: ${ERSTEBANK_DB_DATABASE}
+  #     POSTGRES_USER: ${ERSTEBANK_DB_USERNAME}
+  #     POSTGRES_PASSWORD: ${ERSTEBANK_DB_PASSWORD}
+  #   ports:
+  #     - "${ERSTEBANK_DB_PORT}:5432"
+  #   volumes:
+  #     - erstebank_psql_data:/var/lib/postgresql/data
+
+  # unicredit_service:
+  #   build:
+  #     context: ./unicreditbank_microservice
+  #   ports:
+  #     - "${UNICREDIT_PORT}:8080"
+  #   environment:
+  #     - APP_ENV=${APP_ENV}
+  #     - UNICREDIT_DB_HOST=${UNICREDIT_DB_HOST}
+  #     - UNICREDIT_DB_PORT=${UNICREDIT_DB_PORT}
+  #     - UNICREDIT_DB_DATABASE=${UNICREDIT_DB_DATABASE}
+  #     - UNICREDIT_DB_USERNAME=${UNICREDIT_DB_USERNAME}
+  #     - UNICREDIT_DB_PASSWORD=${UNICREDIT_DB_PASSWORD}
+  #     - UNICREDIT_DB_SCHEMA=${UNICREDIT_DB_SCHEMA}
+  #   depends_on:
+  #     - unicredit_db
+
+  # unicredit_db:
+  #   image: postgres:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: ${UNICREDIT_DB_DATABASE}
+  #     POSTGRES_USER: ${UNICREDIT_DB_USERNAME}
+  #     POSTGRES_PASSWORD: ${UNICREDIT_DB_PASSWORD}
+  #   ports:
+  #     - "${UNICREDIT_DB_PORT}:5432"
+  #   volumes:
+  #     - unicredit_psql_data:/var/lib/postgresql/data
+
+  # psp_service:
+  #   build:
+  #     context: ./psp_microservice
+  #   ports:
+  #     - "${PSP_PORT}:8080"
+  #   environment:
+  #     - APP_ENV=${APP_ENV}
+  #     - PSP_DB_HOST=${PSP_DB_HOST}
+  #     - PSP_DB_PORT=${PSP_DB_PORT}
+  #     - PSP_DB_DATABASE=${PSP_DB_DATABASE}
+  #     - PSP_DB_USERNAME=${PSP_DB_USERNAME}
+  #     - PSP_DB_PASSWORD=${PSP_DB_PASSWORD}
+  #     - PSP_DB_SCHEMA=${PSP_DB_SCHEMA}
+  #   depends_on:
+  #     - psp_db
+
+  # psp_db:
+  #   image: postgres:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: ${PSP_DB_DATABASE}
+  #     POSTGRES_USER: ${PSP_DB_USERNAME}
+  #     POSTGRES_PASSWORD: ${PSP_DB_PASSWORD}
+  #   ports:
+  #     - "${PSP_DB_PORT}:5432"
+  #   volumes:
+  #     - psp_psql_data:/var/lib/postgresql/data
+
+volumes:
+  bank_gateway_psql_data:
+    driver: local
+  pcc_psql_data:
+    driver: local
+  erstebank_psql_data:
+    driver: local
+  unicredit_psql_data:
+    driver: local
+  psp_psql_data:
+    driver: local
