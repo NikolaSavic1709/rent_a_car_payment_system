@@ -93,7 +93,6 @@ func (s *Server) AuthMiddleware() gin.HandlerFunc {
 			var userID int = int(claims["userId"].(float64))
 			c.Set("userId", userID)
 		}
-
 		c.Set("username", claims["username"])
 		c.Next()
 	}
