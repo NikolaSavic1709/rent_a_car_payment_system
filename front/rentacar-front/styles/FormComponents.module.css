@@ -1,0 +1,180 @@
+/* Chips */
+.chipGroup {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.chip {
+    border: solid 2px rgba(var(--PrimaryColor), 1);
+    padding: 2px 10px;
+    border-radius: 50px;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chip:hover {
+    cursor: pointer;
+    background-color: rgba(var(--NavbarBackgroundColor), 1);
+}
+
+.selectedChip {
+    background-color: rgba(var(--PrimaryColor), 1);
+    border: solid 2px rgba(var(--PrimaryColor), 1);
+    color: white;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 50px;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ------------------------------------------------------------------------------------------------------ Buttons */
+.button {
+    font-family: "Titillium Web", sans-serif !important;
+    padding: 10px !important;
+    height: var(--InputHeight) !important;
+    min-width: 80px !important;
+    width: fit-content;
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 20px !important;
+    border: none;
+}
+
+.raisedButton {
+    background-color: rgb(var(--PrimaryColor)) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    transition: background-color 100ms ease-out;
+    border-radius: var(--CornerRadiusStandard);
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.raisedButton:hover {
+    background-color: rgba(var(--PrimaryColor), 0.8) !important;
+}
+
+.raisedButton:disabled {
+    background-color: rgba(var(--SecondaryColor), 0.5) !important;
+    color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.outlinedButton {
+    color: rgb(var(--PrimaryColor)) !important;
+    border: solid 2px rgb(var(--PrimaryColor)) !important;
+    font-weight: 600 !important;
+    transition: background-color 100ms ease-out;
+    border-radius: var(--CornerRadiusStandard);
+}
+  
+.outlinedButton:hover {
+    color: rgb(var(--SecondaryColor));
+    border: solid 2px rgb(var(--SecondaryColor));
+    background-color: rgb(var(--NavbarBackgroundColor));
+}
+
+.linkButton {
+    color: rgb(var(--PrimaryColor)) !important;
+    font-weight: 600 !important;
+    text-transform: none !important; 
+    background: transparent !important; 
+    padding: 0 !important; 
+    margin: 0 !important; 
+    width: fit-content !important;
+    height: fit-content !important;
+}
+
+.linkButton:hover {
+    color: rgba(var(--PrimaryColor), 0.8) !important;
+    text-decoration: underline !important;
+}
+
+.rightBuuttonsWrapper {
+    display: flex;
+    justify-content: flex-end;
+    gap: 5px;
+}
+
+
+/* ------------------------------------------------------------------------------------------------------ Inputs */
+.inputWrapper {
+    width: 250px;
+    border: 2px solid rgba(var(--DarkGray), 0.6);
+    border-radius: var(--Radius);
+    transition: border-color 0.1s, color 0.1s;
+    height: var(--InputHeight);
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.inputWrapper:focus-within { border-color:  rgb(var(--PrimaryColor)); }
+.inputWrapper:hover:not(:focus-within) { border-color: rgb(var(--SecondaryColor)); }
+.input {
+    font-family: "Titillium Web", sans-serif;
+    width: 100%;
+    margin: 0 5px 0 5px;
+    border: none;
+    outline: none;
+    background: none;
+    font-size: 16px;
+}
+.input:hover { background-color: transparent; }
+
+.form {
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+    width: 100%;
+}
+
+.doubleFormLine {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}
+
+.inputIcon {
+    opacity: 0.6;
+    margin-left: 2px;
+}
+
+.inputIcon:hover {
+    color: rgb(var(--PrimaryColor)) !important;
+    opacity: 1;
+    cursor: pointer;
+}
+
+.textArea {
+    font-family: "Titillium Web", sans-serif;
+    width: 100%;
+    height: 200px;
+    border: 2px solid rgba(var(--DarkGray), 0.6);
+    border-radius: var(--Radius);
+    transition: border-color 0.1s, color 0.1s;
+    padding: 5px 8px;
+    outline: none;
+    background: none;
+    font-size: 16px;
+    resize: none;
+}
+
+.textArea:focus {
+    border-color: rgb(var(--PrimaryColor));
+}
+
+.textArea:hover {
+    border-color: rgb(var(--SecondaryColor));
+}
+
+.textArea::-webkit-scrollbar {
+    display: none;
+}

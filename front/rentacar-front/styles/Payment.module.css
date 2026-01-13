@@ -1,0 +1,27 @@
+.page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+    height: calc(100vh - var(--ContentPadding) * 2);
+}
+
+.title {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 600;
+}
+
+.description {
+    text-align: center;
+}
+
+.icon {
+    font-size: 100px;
+    background-color: rgba(var(--PrimaryColor), 0.6);
+    /* background-color: rgba(var(--NavbarBackgroundColor), 1); */
+    padding: 20px;
+    border-radius: 50%;
+    color: white;
+}
