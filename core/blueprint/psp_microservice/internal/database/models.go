@@ -15,6 +15,7 @@ type Transaction struct {
 	MerchantTimestamp time.Time         `json:"merchantTimestamp"`
 	Amount            float32           `json:"amount" binding:"required"`
 	Currency          string            `json:"currency" binding:"required"`
+	PaymentMethod		string  `json:"paymentMethod" binding:"required"`
 	// SuccessURL        string            `json:"successURL"`
 	// FailURL           string            `json:"failURL"`
 	// ErrorURL          string            `json:"errorURL"`
@@ -28,6 +29,7 @@ type WebShopPaymentRequest struct {
 	MerchantPassword  string    `json:"merchantPassword" binding:"required"`
 	MerchantOrderId   uuid.UUID `json:"merchantOrderId" binding:"required"`
 	MerchantTimestamp time.Time `json:"merchantTimestamp" binding:"required"`
+	PaymentMethod		string  `json:"paymentMethod" binding:"required"`
 	// SuccessURL        string    `json:"successURL"`
 	// FailURL           string    `json:"failURL"`
 	// ErrorURL          string    `json:"errorURL"`

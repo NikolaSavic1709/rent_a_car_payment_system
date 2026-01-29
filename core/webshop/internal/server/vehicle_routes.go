@@ -121,6 +121,7 @@ func (s *Server) PurchaseVehicle(c *gin.Context) {
 		"merchantPassword":  "webshop",
 		"merchantOrderId":   merchantOrderID,
 		"merchantTimestamp": merchantTimestamp,
+		"paymentMethod":     req.PaymentMethod,
 	}
 	fmt.Println(merchantOrderID)
 	// Send request to PSP
