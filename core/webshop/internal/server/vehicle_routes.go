@@ -134,9 +134,9 @@ func (s *Server) PurchaseVehicle(c *gin.Context) {
 
 	// Extract token from PSP response
 	token, ok := pspResponse["tokenId"].(string)
-	fmt.Println(pspResponse)
-	fmt.Println(token)
-	if !ok {
+	qrRef, okRef := pspResponse["qrRef"].(uint64)
+
+	if !ok || !okRef {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid response from PSP"})
 		return
 	}
@@ -171,6 +171,7 @@ func (s *Server) PurchaseVehicle(c *gin.Context) {
 		"pspToken":        token,
 		"merchantOrderId": merchantOrderID,
 		"redirectUrl":     merchantPaymentURL,
+		"qrRef":          qrRef,
 	})
 }
 

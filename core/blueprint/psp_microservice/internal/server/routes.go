@@ -24,7 +24,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.POST("/test-postgre", s.NewTransactionHandler)
 	r.POST("/payment", s.PaymentHandler)
 	r.POST("/card-details", s.CardDetailsHandler)
-
+	r.POST("/qr-scan", s.QRCodeScanningHandler)
 	r.PUT("/payment-callback", s.PaymentCallbackHandler)
 
 	r.POST("/subscription/url", s.SendSubscriptionUrlsHandler)

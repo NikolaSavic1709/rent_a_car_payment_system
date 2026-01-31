@@ -36,10 +36,10 @@ export default function Vehicle() {
             method: paymentMethod,
             days: Number(days)
         };
-        if (paymentMethod===PAYMANT_TYPE.QR){
-            window.location.href = "http://localhost:3001/qr";
-            return
-        }
+        // if (paymentMethod===PAYMANT_TYPE.QR){
+        //     window.location.href = "http://localhost:3001/qr";
+        //     return
+        // }
         if (paymentMethod===PAYMANT_TYPE.CRYPTO){
             window.location.href = "http://localhost:3001/crypto";
             return
@@ -54,7 +54,9 @@ export default function Vehicle() {
                 console.log(response.data);
                 // Redirect to the URL from the response
                 if (response.data && response.data.redirectUrl) {
+                    localStorage.setItem('qrRef', response.data.qrRef || '');
                     window.location.href = response.data.redirectUrl;
+                    
                 } else {
                     console.error('responseUrl is missing in the response');
                 }

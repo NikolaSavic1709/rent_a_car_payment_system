@@ -45,6 +45,7 @@ func (s *Server) PaymentHandler(c *gin.Context) {
 		Status:            database.InProgress,
 		Currency:          req.Currency,
 		PaymentMethod:     req.PaymentMethod,
+		QRRef:             generateQRRefFromTimestamp(),
 	}
 	//var merchant database.Merchant
 	merchant, err := s.db.CheckMerchant(req.MerchantId, req.MerchantPassword)
@@ -68,7 +69,7 @@ func (s *Server) PaymentHandler(c *gin.Context) {
 	if req.PaymentMethod == "card" {
 		s.CardPaymentHandler(c)
 	} else if req.PaymentMethod == "qr" {
-		s.QrCodePaymentHandler(c)
+		s.QrCodePaymentHandler(c, transaction.QRRef)
 	} else if req.PaymentMethod == "paypal" {
 		s.PayPalPaymentHandler(c)
 	} else if req.PaymentMethod == "crypto" {
@@ -97,4 +98,12 @@ func (s *Server) PaymentCallbackHandler(c *gin.Context) {
 	fmt.Println(req.Status)
 	s.SendURLToWebShop(url, req.MerchantOrderId)
 	c.JSON(http.StatusOK, gin.H{"message": "Payment response forwarded"})
+}
+
+func generateQRRefFromTimestamp() uint64 {
+    now := time.Now()
+    qrRef := uint64(now.Year()*1e10 + int(now.Month())*1e8 + now.Day()*1e6 +
+        now.Hour()*1e4 + now.Minute()*1e2 + now.Second())
+    qrRef = qrRef*1000 + uint64(now.Nanosecond()/1e6)
+    return qrRef
 }

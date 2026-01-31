@@ -16,9 +16,7 @@ type Transaction struct {
 	Amount            float32           `json:"amount" binding:"required"`
 	Currency          string            `json:"currency" binding:"required"`
 	PaymentMethod		string  `json:"paymentMethod" binding:"required"`
-	// SuccessURL        string            `json:"successURL"`
-	// FailURL           string            `json:"failURL"`
-	// ErrorURL          string            `json:"errorURL"`
+	QRRef             uint64            `json:"qrRef" gorm:"uniqueIndex"`
 }
 
 type WebShopPaymentRequest struct {
@@ -51,6 +49,7 @@ type PaymentStartResponse struct {
 	TokenId    uuid.UUID `json:"tokenId"`
 	Token      string    `json:"token"`
 	TokenExp   time.Time `json:"tokenExp"`
+	QRRef	 uint64    `json:"qrRef"`
 }
 
 type CardDetailsRequest struct {
@@ -59,6 +58,14 @@ type CardDetailsRequest struct {
 	ExpDate              time.Time `json:"expDate" binding:"required"`
 	CardVerificationCode uint      `json:"cardVerificationCode" binding:"required"`
 }
+
+type QRCodeRequest struct {
+	CardNumber           string    `json:"cardNumber" binding:"required"`
+	QRRef                uint64    `json:"qrRef" binding:"required"`
+	ExpDate              time.Time `json:"expDate" binding:"required"`
+	CardVerificationCode uint      `json:"cardVerificationCode" binding:"required"`
+}
+
 
 type TransactionResponse struct {
 	AcquirerOrderId   uuid.UUID         `json:"acquirerOrderId" binding:"required"`
