@@ -133,13 +133,15 @@ func (s *Server) PurchaseVehicle(c *gin.Context) {
 	}
 
 	// Extract token from PSP response
+	fmt.Println(pspResponse)
 	token, ok := pspResponse["tokenId"].(string)
-	qrRef, okRef := pspResponse["qrRef"].(uint64)
+	qrRefFloat, okRef := pspResponse["qrRef"].(float64)
 
 	if !ok || !okRef {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid response from PSP"})
 		return
 	}
+	qrRef := uint64(qrRefFloat)
 
 	// Store payment and PSP token
 	if err := s.db.CreatePayment(userID, payment, req.VehicleID, token); err != nil {

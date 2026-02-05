@@ -29,7 +29,12 @@ type Card struct {
 	ID            uint        `gorm:"primaryKey"`
 	BankAccountID uint        `json:"bankAccountID"`
 	BankAccount   BankAccount `gorm:"foreignKey:BankAccountID"`
-	CardNumber    string      `json:"cardNumber"`
+	// PAN se nikada ne čuva kao plain text!
+    // Ovde čuvaš AES-256 kriptovan niz bajtova ili string
+    EncryptedPAN   string      `json:"-"` 
+    
+    // Ovo sme da se vidi u aplikaciji (npr. 411111XXXXXX1234)
+    MaskedPAN      string      `json:"maskedPan"`
 	ExpiryDate    time.Time   `json:"expiryDate"`
 	CardType      CardType    `json:"cardType"`
 	IsTokenized   bool        `json:"isTokenized"`

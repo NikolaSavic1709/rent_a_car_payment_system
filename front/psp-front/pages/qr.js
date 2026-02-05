@@ -6,8 +6,8 @@ export default function QRCodePage() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        console.log(localStorage.getItem('qrRef'));
-        const qrRef = localStorage.getItem('qrRef');
+        const params = new URLSearchParams(window.location.search);
+        const qrRef = params.get('qrRef');
         if (qrRef) {
             const fetchQRCode = async () => {
                 try {

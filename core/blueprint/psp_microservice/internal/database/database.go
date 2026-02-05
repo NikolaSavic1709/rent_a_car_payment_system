@@ -101,11 +101,11 @@ func (s *service) GetMerchantRedirectURL(merchantId uint, status TransactionStat
 
 func (s *service) WriteTransaction(transaction Transaction) error {
 
-	query := `INSERT INTO transactions (transaction_id, merchant_id, merchant_order_id, status, timestamp, merchant_timestamp, amount, currency) 
-	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	query := `INSERT INTO transactions (transaction_id, merchant_id, merchant_order_id, status, timestamp, merchant_timestamp, amount, currency, qr_ref) 
+	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 	// Use the database connection to execute the query.
-	_, err := s.db.Exec(query, transaction.TransactionId, transaction.MerchantId, transaction.MerchantOrderId, transaction.Status, transaction.Timestamp, transaction.MerchantTimestamp, transaction.Amount, transaction.Currency)
+	_, err := s.db.Exec(query, transaction.TransactionId, transaction.MerchantId, transaction.MerchantOrderId, transaction.Status, transaction.Timestamp, transaction.MerchantTimestamp, transaction.Amount, transaction.Currency, transaction.QRRef)
 	// Handle any errors from the database operation.
 	if err != nil {
 		return err

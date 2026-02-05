@@ -107,3 +107,23 @@ const (
 	Crypto
 	QrCode
 )
+
+type NBSUploadResponse struct {
+    S struct {
+        Code int    `json:"code"` // 0 for OK 
+        Desc string `json:"desc"`
+    } `json:"s"`
+    T string `json:"t"` // Raw text from QR [cite: 250]
+    N struct {
+        K  string `json:"K"`
+        V  string `json:"V"`
+        C  string `json:"C"`
+        R  string `json:"R"`
+        N  string `json:"N"`
+        I  string `json:"I"`
+        P  string `json:"P"`
+        SF string `json:"SF"`
+        S  string `json:"S"`
+        RO string `json:"RO"` // This is your QRRef [cite: 247, 218]
+    } `json:"n"`
+}

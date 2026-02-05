@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"psp_microservice/internal/database"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -65,18 +64,18 @@ func (s *Server) PaymentHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Error"})
 
 	}
-
-	if req.PaymentMethod == "card" {
+	fmt.Println(req.PaymentMethod)
+	if req.PaymentMethod == "CREDIT_CARD" {
 		s.CardPaymentHandler(c)
-	} else if req.PaymentMethod == "qr" {
+	} else if req.PaymentMethod == "QR" {
 		s.QrCodePaymentHandler(c, transaction.QRRef)
 	} else if req.PaymentMethod == "paypal" {
 		s.PayPalPaymentHandler(c)
-	} else if req.PaymentMethod == "crypto" {
-		s.CryptoPaymentHandler(c)
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Unsupported payment method"})
 	}
+	//todo add cryptocurrency
+	
 }
 
 func (s *Server) PaymentCallbackHandler(c *gin.Context) {
