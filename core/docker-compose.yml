@@ -253,6 +253,50 @@ services:
 
 
 
+  psql_crypto:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${CRYPTO_DB_DATABASE}
+      POSTGRES_USER: ${CRYPTO_DB_USERNAME}
+      POSTGRES_PASSWORD: ${CRYPTO_DB_PASSWORD}
+    ports:
+      - "${CRYPTO_DB_PORT}:5432"
+    volumes:
+      - pgdata_crypto:/var/lib/postgresql/data
+      - ./blueprint/crypto_microservice/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - crypto_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${CRYPTO_DB_USERNAME} -d ${CRYPTO_DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  crypto_service:
+    build:
+      context: ./blueprint/crypto_microservice
+      dockerfile: Dockerfile
+    environment:
+      PORT: ${CRYPTO_PORT}
+      DB_HOST_PORT: ${DB_HOST_PORT}
+      APP_ENV: ${CRYPTO_APP_ENV}
+      DB_PORT: 5432
+      DB_HOST: ${CRYPTO_DB_HOST}
+      DB_DATABASE: ${CRYPTO_DB_DATABASE}
+      DB_USERNAME: ${CRYPTO_DB_USERNAME}
+      DB_PASSWORD: ${CRYPTO_DB_PASSWORD}
+      DB_SCHEMA: ${CRYPTO_DB_SCHEMA}
+    ports:
+      - "8086:8080"
+    depends_on:
+      psql_crypto:
+        condition: service_healthy
+    networks:
+      - crypto_network
+      - shared_network
+
+
+
   # psql_unicredit:
   #   image: postgres:15
   #   environment:
@@ -314,6 +358,8 @@ networks:
     driver: bridge
   unicredit_network:
     driver: bridge
+  crypto_network:
+    driver: bridge
 
 volumes:
     pgdata_webshop:
@@ -322,3 +368,4 @@ volumes:
     pgdata_psp:
     pgdata_erstebank:
     pgdata_unicreditbank:
+    pgdata_crypto:

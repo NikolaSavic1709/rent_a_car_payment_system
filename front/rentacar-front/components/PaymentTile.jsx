@@ -40,7 +40,7 @@ export default function PaymentTile({ onBuyClick }) {
                     PayPal
                 </div>
                 <div
-                    className={style.chipInactive}
+                    className={`${paymentType == PAYMANT_TYPE.CRYPTO ? formStyle.selectedChip : formStyle.chip} ${style.paymentChip}`}
                     onClick={() => setPaymentType(PAYMANT_TYPE.CRYPTO)}
                 >
                     <span className={`material-icons-outlined`}>currency_bitcoin </span>
