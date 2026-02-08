@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"psp_microservice/internal/database"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -27,27 +26,6 @@ func (s *Server) NewTransactionHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Transaction created", "transaction": req})
 }
 
-func (s *Server) CardDetailsHandler(c *gin.Context) {
-	var req database.CardDetailsRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": fmt.Sprintf("Invalid request: %v", err)})
-		return
-	}
-	fmt.Println(req.MerchantOrderId)
-	paymentRequest, err := s.db.GetTransactionByMerchantOrderId(req.MerchantOrderId)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Error"})
-
-	}
-	fmt.Println("payment request")
-	fmt.Println(paymentRequest.Amount)
-	paymentRequest.CardNumber = req.CardNumber
-	paymentRequest.ExpDate = req.ExpDate
-	// s.SendURLToWebShop("http://localhost:3000/payment/success", req.MerchantOrderId)
-	s.ForwardPaymentToBankGateway(paymentRequest)
-	c.JSON(http.StatusOK, gin.H{"message": "Payment request forwarded"})
-}
-
 func (s *Server) PaymentHandler(c *gin.Context) {
 	fmt.Println("USAO")
 	var req database.WebShopPaymentRequest
@@ -65,6 +43,8 @@ func (s *Server) PaymentHandler(c *gin.Context) {
 		TransactionId:     uuid.New(),
 		Status:            database.InProgress,
 		Currency:          req.Currency,
+		PaymentMethod:     req.PaymentMethod,
+		QRRef:             generateQRRefFromTimestamp(),
 	}
 	//var merchant database.Merchant
 	merchant, err := s.db.CheckMerchant(req.MerchantId, req.MerchantPassword)
@@ -84,18 +64,20 @@ func (s *Server) PaymentHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Error"})
 
 	}
-
-	tokenId := uuid.New()
-	paymentURL := fmt.Sprintf("http://localhost:3001/card?tokenId=%s", tokenId) //:TODO for other payments
-
-	response := database.PaymentStartResponse{
-		PaymentURL: paymentURL,
-		TokenId:    tokenId,
-		Token:      "token",
-		TokenExp:   time.Now().Add(15 * time.Minute),
+	fmt.Println(req.PaymentMethod)
+	if req.PaymentMethod == "CREDIT_CARD" {
+		s.CardPaymentHandler(c)
+	} else if req.PaymentMethod == "QR" {
+		s.QrCodePaymentHandler(c, transaction.QRRef)
+	} else if req.PaymentMethod == "PAYPAL" {
+		s.PayPalPaymentHandler(c)
+	} else if req.PaymentMethod == "CRYPTO" {
+		s.CryptoPaymentHandler(c, transaction.MerchantOrderId)
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Unsupported payment method"})
 	}
-	fmt.Println("KRAJ")
-	c.JSON(http.StatusOK, response)
+	//todo add cryptocurrency
+
 }
 
 func (s *Server) PaymentCallbackHandler(c *gin.Context) {
@@ -119,80 +101,10 @@ func (s *Server) PaymentCallbackHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Payment response forwarded"})
 }
 
-func (s *Server) SendSubscriptionUrlsHandler(c *gin.Context) {
-	type UrlSubscriptionRequest struct {
-		MerchantId       uint   `json:"merchantId" binding:"required"`
-		MerchantPassword string `json:"merchantPassword" binding:"required"`
-	}
-
-	var req UrlSubscriptionRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": fmt.Sprintf("Invalid request: %v", err)})
-		return
-	}
-
-	merchant, err := s.db.CheckMerchant(req.MerchantId, req.MerchantPassword)
-	if merchant == nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid merchant"})
-		return
-	}
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	urlResponse := map[string]interface{}{
-		"url": fmt.Sprintf("http://localhost:3001/subscription?merchantId=%s", strconv.Itoa(int(req.MerchantId))),
-	}
-	c.JSON(http.StatusOK, urlResponse)
-}
-
-func (s *Server) SaveSubscriptionForMarchantHandler(c *gin.Context) {
-	type SubscriptionRequest struct {
-		MerchantId       uint   `json:"merchantId" binding:"required"`
-		MerchantPassword string `json:"merchantPassword" binding:"required"`
-		Methods          []uint `json:"methods" binding:"required"`
-	}
-
-	var req SubscriptionRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": fmt.Sprintf("Invalid request: %v", err)})
-		return
-	}
-
-	merchant, err := s.db.CheckMerchant(req.MerchantId, req.MerchantPassword)
-	if merchant == nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid merchant"})
-		return
-	}
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	err = s.db.DeletePreviousSubscription(req.MerchantId)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	for _, method := range req.Methods {
-		err = s.db.SaveSubscription(req.MerchantId, method)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-	}
-
-	c.JSON(http.StatusOK, nil)
-}
-
-func (s *Server) GetSubscriptionsForMarchantHandler(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("merchantId"))
-	methods, err := s.db.GetSubscriptionsForMerchant(uint(id))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, methods)
+func generateQRRefFromTimestamp() uint64 {
+	now := time.Now()
+	qrRef := uint64(now.Year()*1e10 + int(now.Month())*1e8 + now.Day()*1e6 +
+		now.Hour()*1e4 + now.Minute()*1e2 + now.Second())
+	qrRef = qrRef*1000 + uint64(now.Nanosecond()/1e6)
+	return qrRef
 }

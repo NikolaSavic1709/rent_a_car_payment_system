@@ -36,25 +36,31 @@ export default function Vehicle() {
             method: paymentMethod,
             days: Number(days)
         };
-        if (paymentMethod===PAYMANT_TYPE.QR){
-            window.location.href = "http://localhost:3001/qr";
-            return
-        }
-        if (paymentMethod===PAYMANT_TYPE.CRYPTO){
-            window.location.href = "http://localhost:3001/crypto";
-            return
-        }
+        
         if (paymentMethod===PAYMANT_TYPE.PAYPAL){
             window.location.href = "http://localhost:3001/paypal";
             return
         }
+        
         console.log(payment);
         axios.post(`${BACK_BASE_URL}/vehicles/purchase`, payment)
             .then(response => {
                 console.log(response.data);
                 // Redirect to the URL from the response
                 if (response.data && response.data.redirectUrl) {
-                    window.location.href = response.data.redirectUrl;
+                    console.log("Received redirect URL: ", response.data.redirectUrl);
+
+                    const qrRef = response.data.qrRef;
+
+                    // check if URL already has query params
+                    const separator = response.data.redirectUrl.includes('?') ? '&' : '?';
+
+                    const redirectUrl =
+                        response.data.redirectUrl + separator + 'qrRef=' + encodeURIComponent(qrRef);
+
+                    console.log("Redirecting to: ", redirectUrl);
+
+                    window.location.href = redirectUrl;
                 } else {
                     console.error('responseUrl is missing in the response');
                 }

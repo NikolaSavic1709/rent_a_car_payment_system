@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"net/http"
 	"psp_microservice/internal/database"
+
+	"github.com/google/uuid"
 )
 
 func (s *Server) ForwardPaymentToBankGateway(paymentRequest database.PaymentRequest) {

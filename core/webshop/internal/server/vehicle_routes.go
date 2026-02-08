@@ -121,6 +121,7 @@ func (s *Server) PurchaseVehicle(c *gin.Context) {
 		"merchantPassword":  "webshop",
 		"merchantOrderId":   merchantOrderID,
 		"merchantTimestamp": merchantTimestamp,
+		"paymentMethod":     req.PaymentMethod,
 	}
 	fmt.Println(merchantOrderID)
 	// Send request to PSP
@@ -132,13 +133,15 @@ func (s *Server) PurchaseVehicle(c *gin.Context) {
 	}
 
 	// Extract token from PSP response
-	token, ok := pspResponse["tokenId"].(string)
 	fmt.Println(pspResponse)
-	fmt.Println(token)
-	if !ok {
+	token, ok := pspResponse["tokenId"].(string)
+	qrRefFloat, okRef := pspResponse["qrRef"].(float64)
+
+	if !ok || !okRef {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid response from PSP"})
 		return
 	}
+	qrRef := uint64(qrRefFloat)
 
 	// Store payment and PSP token
 	if err := s.db.CreatePayment(userID, payment, req.VehicleID, token); err != nil {
@@ -170,6 +173,7 @@ func (s *Server) PurchaseVehicle(c *gin.Context) {
 		"pspToken":        token,
 		"merchantOrderId": merchantOrderID,
 		"redirectUrl":     merchantPaymentURL,
+		"qrRef":          qrRef,
 	})
 }
 

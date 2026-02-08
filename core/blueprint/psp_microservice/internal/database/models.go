@@ -15,9 +15,8 @@ type Transaction struct {
 	MerchantTimestamp time.Time         `json:"merchantTimestamp"`
 	Amount            float32           `json:"amount" binding:"required"`
 	Currency          string            `json:"currency" binding:"required"`
-	// SuccessURL        string            `json:"successURL"`
-	// FailURL           string            `json:"failURL"`
-	// ErrorURL          string            `json:"errorURL"`
+	PaymentMethod		string  `json:"paymentMethod" binding:"required"`
+	QRRef             uint64            `json:"qrRef" gorm:"uniqueIndex"`
 }
 
 type WebShopPaymentRequest struct {
@@ -28,6 +27,7 @@ type WebShopPaymentRequest struct {
 	MerchantPassword  string    `json:"merchantPassword" binding:"required"`
 	MerchantOrderId   uuid.UUID `json:"merchantOrderId" binding:"required"`
 	MerchantTimestamp time.Time `json:"merchantTimestamp" binding:"required"`
+	PaymentMethod		string  `json:"paymentMethod" binding:"required"`
 	// SuccessURL        string    `json:"successURL"`
 	// FailURL           string    `json:"failURL"`
 	// ErrorURL          string    `json:"errorURL"`
@@ -49,6 +49,7 @@ type PaymentStartResponse struct {
 	TokenId    uuid.UUID `json:"tokenId"`
 	Token      string    `json:"token"`
 	TokenExp   time.Time `json:"tokenExp"`
+	QRRef	 uint64    `json:"qrRef"`
 }
 
 type CardDetailsRequest struct {
@@ -57,6 +58,14 @@ type CardDetailsRequest struct {
 	ExpDate              time.Time `json:"expDate" binding:"required"`
 	CardVerificationCode uint      `json:"cardVerificationCode" binding:"required"`
 }
+
+type QRCodeRequest struct {
+	CardNumber           string    `json:"cardNumber" binding:"required"`
+	QRRef                uint64    `json:"qrRef" binding:"required"`
+	ExpDate              time.Time `json:"expDate" binding:"required"`
+	CardVerificationCode uint      `json:"cardVerificationCode" binding:"required"`
+}
+
 
 type TransactionResponse struct {
 	AcquirerOrderId   uuid.UUID         `json:"acquirerOrderId" binding:"required"`
@@ -98,3 +107,23 @@ const (
 	Crypto
 	QrCode
 )
+
+type NBSUploadResponse struct {
+    S struct {
+        Code int    `json:"code"` // 0 for OK 
+        Desc string `json:"desc"`
+    } `json:"s"`
+    T string `json:"t"` // Raw text from QR [cite: 250]
+    N struct {
+        K  string `json:"K"`
+        V  string `json:"V"`
+        C  string `json:"C"`
+        R  string `json:"R"`
+        N  string `json:"N"`
+        I  string `json:"I"`
+        P  string `json:"P"`
+        SF string `json:"SF"`
+        S  string `json:"S"`
+        RO string `json:"RO"` // This is your QRRef [cite: 247, 218]
+    } `json:"n"`
+}

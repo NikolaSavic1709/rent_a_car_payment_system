@@ -33,6 +33,7 @@ type Service interface {
 	GetMerchantRedirectURL(merchantId uint, status TransactionStatus) (string, error)
 	WriteTransaction(transaction Transaction) error
 	GetTransactionByMerchantOrderId(merchantOrderId uuid.UUID) (PaymentRequest, error)
+	GetTransactionByQRRef(qrRef uint64) (PaymentRequest, error)
 	ChangeTransactionStatus(transactionId uuid.UUID, status TransactionStatus) (uint, error)
 	DeletePreviousSubscription(merchantId uint) error
 	SaveSubscription(merchantId uint, method uint) error
@@ -100,11 +101,11 @@ func (s *service) GetMerchantRedirectURL(merchantId uint, status TransactionStat
 
 func (s *service) WriteTransaction(transaction Transaction) error {
 
-	query := `INSERT INTO transactions (transaction_id, merchant_id, merchant_order_id, status, timestamp, merchant_timestamp, amount, currency) 
-	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	query := `INSERT INTO transactions (transaction_id, merchant_id, merchant_order_id, status, timestamp, merchant_timestamp, amount, currency, qr_ref) 
+	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 	// Use the database connection to execute the query.
-	_, err := s.db.Exec(query, transaction.TransactionId, transaction.MerchantId, transaction.MerchantOrderId, transaction.Status, transaction.Timestamp, transaction.MerchantTimestamp, transaction.Amount, transaction.Currency)
+	_, err := s.db.Exec(query, transaction.TransactionId, transaction.MerchantId, transaction.MerchantOrderId, transaction.Status, transaction.Timestamp, transaction.MerchantTimestamp, transaction.Amount, transaction.Currency, transaction.QRRef)
 	// Handle any errors from the database operation.
 	if err != nil {
 		return err
@@ -126,6 +127,19 @@ func (s *service) GetTransactionByMerchantOrderId(merchantOrderId uuid.UUID) (Pa
 
 	return paymentRequest, nil
 }
+func (s *service) GetTransactionByQRRef(qrRef uint64) (PaymentRequest, error) {
+	query := `SELECT currency, amount, merchant_id, timestamp, transaction_id, merchant_order_id FROM transactions WHERE qr_ref = $1`
+	row := s.db.QueryRow(query, qrRef)
+	fmt.Println(row)
+	var paymentRequest PaymentRequest
+	err := row.Scan(&paymentRequest.Currency, &paymentRequest.Amount, &paymentRequest.MerchantId, &paymentRequest.Timestamp, &paymentRequest.TransactionId, &paymentRequest.MerchantOrderId)
+	if err != nil {
+		fmt.Println(err)
+		return paymentRequest, err
+	}
+	return paymentRequest, nil
+}
+
 func (s *service) ChangeTransactionStatus(transactionId uuid.UUID, status TransactionStatus) (uint, error) {
 	var merchantID uint
 

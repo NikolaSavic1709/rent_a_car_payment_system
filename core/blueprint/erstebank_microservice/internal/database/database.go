@@ -67,21 +67,47 @@ func (s *service) Pay(acquirerOrderId uuid.UUID, currency string, amount float32
 		return Failed, fmt.Errorf("invalid card number")
 	}
 
-	queryCard := `SELECT id, bank_account_id, card_number, expiry_date, card_type, is_tokenized 
-	              FROM cards WHERE card_number = $1`
+	queryCard := `SELECT id, bank_account_id, encrypted_pan, expiry_date, card_type, is_tokenized 
+	              FROM cards`
 
-	var card Card
-	err := s.db.QueryRow(queryCard, cardNumber).Scan(
-		&card.ID,
-		&card.BankAccountID,
-		&card.CardNumber,
-		&card.ExpiryDate,
-		&card.CardType,
-		&card.IsTokenized,
-	)
+	rows, err := s.db.Query(queryCard)
 	if err != nil {
 		updateTransactionStatus(Error)
-		return Error, fmt.Errorf("failed to fetch card: %w", err)
+		return Error, fmt.Errorf("failed to fetch cards: %w", err)
+	}
+	defer rows.Close()
+
+	var card Card
+	var foundCard bool
+	for rows.Next() {
+		err := rows.Scan(
+			&card.ID,
+			&card.BankAccountID,
+			&card.EncryptedPAN,
+			&card.ExpiryDate,
+			&card.CardType,
+			&card.IsTokenized,
+		)
+		if err != nil {
+			continue
+		}
+
+		// Decrypt the PAN
+		decryptedPAN, err := Decrypt(card.EncryptedPAN)
+		if err != nil {
+			continue
+		}
+
+		// Compare with input card number
+		if decryptedPAN == cardNumber {
+			foundCard = true
+			break
+		}
+	}
+
+	if !foundCard {
+		updateTransactionStatus(Error)
+		return Error, fmt.Errorf("failed to fetch card: card not found")
 	}
 
 	if card.ExpiryDate.Year() != expiryDate.Year() || card.ExpiryDate.Month() != expiryDate.Month() {
