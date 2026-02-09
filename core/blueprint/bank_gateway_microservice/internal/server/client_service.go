@@ -79,7 +79,7 @@ func processBankResponseForPSP(response database.TransactionResponse, bankError 
 	}
 	fmt.Println(string(responseBytes))
 
-	pspURL := "http://psp_service:8080/payment-callback"
+	pspURL := "http://nginx/payment-callback"
 	fmt.Println("sss")
 	req, err := http.NewRequest("PUT", pspURL, bytes.NewBuffer(responseBytes))
 	if err != nil {

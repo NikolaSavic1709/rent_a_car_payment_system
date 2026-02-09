@@ -17,7 +17,7 @@ func (s *Server) SendCallbackToPSP(payment *database.PayPalPayment, status datab
 	go func() {
 		pspURL := os.Getenv("PSP_CALLBACK_URL")
 		if pspURL == "" {
-			pspURL = "http://psp_service:8080/payment-callback"
+			pspURL = "http://nginx/payment-callback"
 		}
 
 		callback := database.PayPalCallback{

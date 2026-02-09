@@ -11,7 +11,7 @@ import (
 
 func (s *Server) SendCallbackToPSP(payment *database.CryptoPayment) {
 	go func() {
-		pspURL := "http://psp_service:8080/payment-callback"
+		pspURL := "http://nginx/payment-callback"
 
 		callback := database.CryptoPaymentCallback{
 			TransactionId:   payment.TransactionId,
