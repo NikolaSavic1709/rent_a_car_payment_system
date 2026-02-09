@@ -92,10 +92,13 @@ func (s *Server) PaymentHandler(c *gin.Context) {
 	}
 
 	var status database.TransactionStatus
+	
+	fmt.Println("Before payment")
 	status, err = s.db.Pay(transaction.AcquirerOrderId, paymentReq.Currency, paymentReq.Amount, paymentReq.CardNumber, paymentReq.ExpDate, transaction.MerchantId)
+	fmt.Println("After payment")
 
 	if err != nil {
-
+		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Error"})
 
 	}

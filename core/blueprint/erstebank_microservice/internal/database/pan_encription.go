@@ -18,12 +18,14 @@ func Encrypt(plainText string) (string, error) {
 	// 2. Kreiranje cipher bloka
 	block, err := aes.NewCipher(key)
 	if err != nil {
+		fmt.Println("Error creating cipher block:", err)
 		return "", err
 	}
 
 	// 3. GCM mod rada (preporučen za PCI DSS)
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
+		fmt.Println("Error creating GCM:", err)
 		return "", err
 	}
 
@@ -31,6 +33,7 @@ func Encrypt(plainText string) (string, error) {
 	// PCI DSS zahteva da se isti ključ ne koristi isto bez nasumičnog dela
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		fmt.Println("Error generating nonce:", err)
 		return "", err
 	}
 

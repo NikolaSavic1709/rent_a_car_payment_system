@@ -54,19 +54,14 @@ export default function Vehicle() {
                 console.log(response.data);
                 // Redirect to the URL from the response
                 if (response.data && response.data.redirectUrl) {
-console.log("Received redirect URL: ", response.data.redirectUrl);
+                    console.log("Received redirect URL: ", response.data.redirectUrl);
+                    const qrRef = response.data.qrRef;
+                    const separator = response.data.redirectUrl.includes('?') ? '&' : '?';
 
-const qrRef = response.data.qrRef;
+                    const redirectUrl =
+                        response.data.redirectUrl + separator + 'qrRef=' + encodeURIComponent(qrRef);
 
-// check if URL already has query params
-const separator = response.data.redirectUrl.includes('?') ? '&' : '?';
-
-const redirectUrl =
-    response.data.redirectUrl + separator + 'qrRef=' + encodeURIComponent(qrRef);
-
-console.log("Redirecting to: ", redirectUrl);
-
-window.location.href = redirectUrl;
+                    window.location.href = redirectUrl;
                 } else {
                     console.error('responseUrl is missing in the response');
                 }

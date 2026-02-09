@@ -33,6 +33,7 @@ type Service interface {
 	GetMerchantRedirectURL(merchantId uint, status TransactionStatus) (string, error)
 	WriteTransaction(transaction Transaction) error
 	GetTransactionByMerchantOrderId(merchantOrderId uuid.UUID) (PaymentRequest, error)
+	GetRedirectURLByMerchantOrderId(merchantOrderId uuid.UUID) (string, error)
 	GetTransactionByQRRef(qrRef uint64) (PaymentRequest, error)
 	ChangeTransactionStatus(transactionId uuid.UUID, status TransactionStatus) (uint, error)
 	DeletePreviousSubscription(merchantId uint) error
@@ -128,17 +129,66 @@ func (s *service) GetTransactionByMerchantOrderId(merchantOrderId uuid.UUID) (Pa
 	return paymentRequest, nil
 }
 func (s *service) GetTransactionByQRRef(qrRef uint64) (PaymentRequest, error) {
-	query := `SELECT currency, amount, merchant_id, timestamp, transaction_id, merchant_order_id FROM transactions WHERE qr_ref = $1`
+	fmt.Println("Getting transaction by QR ref: ", qrRef)
+	query := `
+		SELECT currency, amount, merchant_id, timestamp, transaction_id, merchant_order_id
+		FROM transactions
+		WHERE qr_ref BETWEEN ($1::BIGINT / 100) * 100
+  			AND ($1::BIGINT / 100) * 100 + 99
+	`
+
 	row := s.db.QueryRow(query, qrRef)
-	fmt.Println(row)
+
 	var paymentRequest PaymentRequest
-	err := row.Scan(&paymentRequest.Currency, &paymentRequest.Amount, &paymentRequest.MerchantId, &paymentRequest.Timestamp, &paymentRequest.TransactionId, &paymentRequest.MerchantOrderId)
+	err := row.Scan(
+		&paymentRequest.Currency,
+		&paymentRequest.Amount,
+		&paymentRequest.MerchantId,
+		&paymentRequest.Timestamp,
+		&paymentRequest.TransactionId,
+		&paymentRequest.MerchantOrderId,
+	)
 	if err != nil {
-		fmt.Println(err)
+	    fmt.Println("DB error:", err)
 		return paymentRequest, err
 	}
+	fmt.Println("Fetched transaction: ", paymentRequest)
+
 	return paymentRequest, nil
 }
+
+// GetRedirectURLByMerchantOrderId checks transaction status for given merchantOrderId.
+// If status is InProgress (1) it returns empty string and nil error so callers can poll again.
+// If status is Successful, Failed or Error it returns the merchant's configured redirect URL.
+func (s *service) GetRedirectURLByMerchantOrderId(merchantOrderId uuid.UUID) (string, error) {
+	var merchantID uint
+	var statusInt int
+
+	query := `SELECT merchant_id, status FROM transactions WHERE merchant_order_id = $1`
+	row := s.db.QueryRow(query, merchantOrderId.String())
+	err := row.Scan(&merchantID, &statusInt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", fmt.Errorf("transaction not found")
+		}
+		return "", fmt.Errorf("failed to query transaction: %w", err)
+	}
+
+	status := TransactionStatus(statusInt)
+
+	if status == InProgress {
+		// Still pending, return empty so frontend can keep polling
+		return "", nil
+	}
+
+	// For final states, return merchant redirect URL (may be empty if not configured)
+	url, err := s.GetMerchantRedirectURL(merchantID, status)
+	if err != nil {
+		return "", err
+	}
+	return url, nil
+}
+
 
 func (s *service) ChangeTransactionStatus(transactionId uuid.UUID, status TransactionStatus) (uint, error) {
 	var merchantID uint

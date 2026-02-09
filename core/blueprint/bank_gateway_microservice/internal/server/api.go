@@ -21,6 +21,7 @@ func (s *Server) NewTransactionHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Transaction created", "transaction": req})
 }
 func (s *Server) PaymentHandler(c *gin.Context) {
+	fmt.Println(c.Request.Body)
 	fmt.Println("usao u bank gateway")
 	var req database.PaymentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

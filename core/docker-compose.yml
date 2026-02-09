@@ -145,6 +145,7 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_SCHEMA: ${DB_SCHEMA}
+      BANK_ENCRYPTION_KEY: ${BANK_ENCRYPTION_KEY}
     # deploy:
     #   replicas: 3
     # ports:

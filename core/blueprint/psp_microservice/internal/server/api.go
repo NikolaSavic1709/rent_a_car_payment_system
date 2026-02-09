@@ -99,6 +99,30 @@ func (s *Server) PaymentCallbackHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Payment response forwarded"})
 }
 
+// TransactionStatusHandler allows frontend to poll transaction status by merchantOrderId.
+// Returns an empty `url` when transaction is still InProgress (pending). For final
+// statuses it returns the merchant redirect URL (success/fail/error) which may be empty
+// if the merchant hasn't configured it.
+func (s *Server) TransactionStatusHandler(c *gin.Context) {
+	var req struct {
+		MerchantOrderId uuid.UUID `json:"merchantOrderId" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	url, err := s.db.GetRedirectURLByMerchantOrderId(req.MerchantOrderId)
+	if err != nil {
+		// Not found or DB error
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"url": url})
+}
+
 func generateQRRefFromTimestamp() uint64 {
     now := time.Now()
     qrRef := uint64(now.Year()*1e10 + int(now.Month())*1e8 + now.Day()*1e6 +

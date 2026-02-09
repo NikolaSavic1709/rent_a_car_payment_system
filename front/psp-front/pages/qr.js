@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { BACK_BASE_URL } from '@/values/Enviroment'
 
 export default function QRCodePage() {
     const [qrCode, setQrCode] = useState(null);
@@ -8,6 +9,9 @@ export default function QRCodePage() {
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const qrRef = params.get('qrRef');
+        const merchantOrderId = params.get('merchantOrderId');
+        let intervalId;
+
         if (qrRef) {
             const fetchQRCode = async () => {
                 try {
@@ -31,6 +35,25 @@ export default function QRCodePage() {
                     );
 
                     setQrCode(`data:image/png;base64,${base64Image}`);
+                    // start polling transaction status every 5 seconds
+                    if (merchantOrderId) {
+                        intervalId = setInterval(async () => {
+                            try {
+                                const statusResp = await axios.post(`${BACK_BASE_URL}/transaction-status`, { merchantOrderId });
+                                const redirectUrl = statusResp.data['url'];
+                                console.log('Polled transaction status, redirect URL:', redirectUrl);
+                                if (redirectUrl && redirectUrl !== "") {
+                                    clearInterval(intervalId);
+                                    window.location.href = redirectUrl;
+                                }
+                                // if empty string, continue polling
+                            } catch (pollErr) {
+                                console.error('Error polling transaction status:', pollErr);
+                            }
+                        }, 5000);
+                    } else {
+                        console.warn('merchantOrderId missing; skipping status polling.');
+                    }
                 } catch (error) {
                     console.error('Error fetching QR code:', error);
                     setError('Failed to generate QR code. Please try again later.');
@@ -41,6 +64,12 @@ export default function QRCodePage() {
         } else {
             setError('QR reference is missing. Unable to generate QR code.');
         }
+
+        return () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        };
     }, []);
 
     return (

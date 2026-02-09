@@ -6,7 +6,7 @@ import (
 	"time"
 	"bytes"
 	"io"
-	
+	"strings"
 	"strconv"
 	"mime/multipart"
 	"encoding/json"
@@ -73,16 +73,31 @@ func (s *Server) QRCodeScanningHandler(c *gin.Context) {
     // 2. Extract CardNumber and ExpDate from the same form-data body
     cardNumber := c.PostForm("CardNumber")
     expDateStr := c.PostForm("ExpDate")
-
     if cardNumber == "" || expDateStr == "" {
         c.JSON(http.StatusBadRequest, gin.H{"error": "CardNumber and ExpDate are required"})
         return
     }
-	expiryTime, err := time.Parse("01/06", expDateStr)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ExpDate format. Use MM/YY"})
-        return
-    }
+	parts := strings.Split(expDateStr, "/")
+	if len(parts) != 2 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ExpDate format. Use MM/YY"})
+		return
+	}
+
+	month, err := strconv.Atoi(parts[0])
+	year, err2 := strconv.Atoi(parts[1])
+	if err != nil || err2 != nil || month < 1 || month > 12 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ExpDate format. Use MM/YY"})
+		return
+	}
+
+	expiryTimestamp := time.Date(
+		2000+year,
+		time.Month(month),
+		1,
+		0, 0, 0, 0,
+		time.UTC,
+	)
+
 
     // 2. Forward the file to NBS IPS upload API
     // NBS URL: https://nbs.rs/QRcode/api/qr/v1/upload [cite: 239]
@@ -91,7 +106,6 @@ func (s *Server) QRCodeScanningHandler(c *gin.Context) {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process QR code with NBS"})
         return
     }
-
 	qrRef, err := strconv.ParseUint(nbsResponse.N.RO, 10, 64)
 	if err != nil {
 		// Handle error if the string contains non-numeric characters
@@ -102,13 +116,12 @@ func (s *Server) QRCodeScanningHandler(c *gin.Context) {
 	paymentRequest, err := s.db.GetTransactionByQRRef(qrRef)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Error"})
-
+		return 
 	}
 	fmt.Println("payment request")
 	fmt.Println(paymentRequest)
 	paymentRequest.CardNumber = cardNumber
-	paymentRequest.ExpDate = expiryTime
-	fmt.Println("Rtrty")
+	paymentRequest.ExpDate = expiryTimestamp
 	s.ForwardPaymentToBankGateway(paymentRequest)
 	c.JSON(http.StatusOK, gin.H{"message": "Payment request forwarded"})
 }

@@ -76,7 +76,8 @@ func (s *service) Pay(acquirerOrderId uuid.UUID, currency string, amount float32
 		return Error, fmt.Errorf("failed to fetch cards: %w", err)
 	}
 	defer rows.Close()
-
+	encrypted_pan, err := Encrypt(cardNumber)
+	fmt.Printf("Encrypted PAN: %s\n", encrypted_pan)
 	var card Card
 	var foundCard bool
 	for rows.Next() {
@@ -95,23 +96,26 @@ func (s *service) Pay(acquirerOrderId uuid.UUID, currency string, amount float32
 		// Decrypt the PAN
 		decryptedPAN, err := Decrypt(card.EncryptedPAN)
 		if err != nil {
+			fmt.Printf("Failed to decrypt PAN for card pan %d: %v\n", card.EncryptedPAN, err)
 			continue
 		}
-
+		fmt.Printf("Decrypted PAN: %s\n", decryptedPAN)
 		// Compare with input card number
 		if decryptedPAN == cardNumber {
+			fmt.Printf("Card found: ID=%d, BankAccountID=%d\n", card.ID, card.BankAccountID)
 			foundCard = true
 			break
 		}
 	}
 
 	if !foundCard {
+		fmt.Println("Card not found")
 		updateTransactionStatus(Error)
 		return Error, fmt.Errorf("failed to fetch card: card not found")
 	}
 
 	if card.ExpiryDate.Year() != expiryDate.Year() || card.ExpiryDate.Month() != expiryDate.Month() {
-		fmt.Println(err)
+		fmt.Printf("Card expired: card expiry=%s, provided expiry=%s\n", card.ExpiryDate.Format("01/2006"), expiryDate.Format("01/2006"))
 		updateTransactionStatus(Failed)
 		return Failed, nil
 	}
@@ -125,20 +129,21 @@ func (s *service) Pay(acquirerOrderId uuid.UUID, currency string, amount float32
 	}
 	err = s.db.QueryRow(queryBankAccount, card.BankAccountID).Scan(&bankAccount.ID, &bankAccount.Balance, &bankAccount.Currency)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Failed to fetch bank account: ", err)
 		updateTransactionStatus(Error)
 		return Error, fmt.Errorf("failed to fetch bank account: %w", err)
 	}
 
 	if bankAccount.Balance < amount || bankAccount.Currency != currency {
 		updateTransactionStatus(Failed)
+		fmt.Printf("Insufficient funds or currency mismatch: balance=%f, required=%f, account currency=%s, required currency=%s\n", bankAccount.Balance, amount, bankAccount.Currency, currency)
 		return Failed, nil
 	}
 	var merchantBankAccountID uint
 	merchantQuery := `SELECT bank_account_id FROM merchants WHERE merchant_id = $1`
 	err = s.db.QueryRow(merchantQuery, merchantId).Scan(&merchantBankAccountID)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Failed to fetch merchant bank account: ", err)
 		updateTransactionStatus(Failed)
 		return Failed, fmt.Errorf("fail, merchant does not exist: %w", err)
 	}
@@ -146,7 +151,7 @@ func (s *service) Pay(acquirerOrderId uuid.UUID, currency string, amount float32
 	bankAccountQuery := `SELECT 1 FROM bank_accounts WHERE id = $1`
 	err = s.db.QueryRow(bankAccountQuery, merchantBankAccountID).Scan(new(int)) // Scan into a dummy variable
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Failed to fetch merchant bank account: ", err)
 		updateTransactionStatus(Error)
 		if errors.Is(err, sql.ErrNoRows) {
 			return Error, fmt.Errorf("fail, bank account does not exist")
@@ -156,6 +161,7 @@ func (s *service) Pay(acquirerOrderId uuid.UUID, currency string, amount float32
 
 	tx, err := s.db.Begin() // Start a transaction
 	if err != nil {
+		fmt.Println("Failed to start transaction: ", err)
 		return Error, fmt.Errorf("failed to start transaction: %w", err)
 	}
 
@@ -172,17 +178,20 @@ func (s *service) Pay(acquirerOrderId uuid.UUID, currency string, amount float32
 	var currentBalance float32
 	err = tx.QueryRow(`SELECT balance FROM bank_accounts WHERE id = $1 FOR UPDATE`, bankAccount.ID).Scan(&currentBalance)
 	if err != nil {
+		fmt.Println("Failed to fetch balance: ", err)
 		updateTransactionStatus(Error)
 		return Error, fmt.Errorf("failed to fetch balance: %w", err)
 	}
 
 	if currentBalance < amount {
+		fmt.Printf("Insufficient funds: balance=%f, required=%f\n", currentBalance, amount)
 		updateTransactionStatus(Failed)
 		return Failed, fmt.Errorf("insufficient funds: balance=%f, required=%f", currentBalance, amount)
 	}	
 	updateBalanceQuery1 := `UPDATE bank_accounts SET balance = balance - $1 WHERE id = $2`
 	_, err = tx.Exec(updateBalanceQuery1, amount, bankAccount.ID)
 	if err != nil {
+		fmt.Println("Failed to update balance for account 1: ", err)
 		updateTransactionStatus(Error)
 		return Error, fmt.Errorf("failed to update balance for account 1: %w", err)
 	}
@@ -190,6 +199,7 @@ func (s *service) Pay(acquirerOrderId uuid.UUID, currency string, amount float32
 	updateBalanceQuery2 := `UPDATE bank_accounts SET balance = balance + $1 WHERE id = $2`
 	_, err = tx.Exec(updateBalanceQuery2, amount, merchantBankAccountID)
 	if err != nil {
+		fmt.Println("Failed to update balance for account 2: ", err)
 		updateTransactionStatus(Error)
 		return Error, fmt.Errorf("failed to update balance for account 2: %w", err)
 	}

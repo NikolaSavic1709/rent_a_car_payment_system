@@ -25,6 +25,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.POST("/payment", s.PaymentHandler)
 	r.POST("/card-details", s.CardDetailsHandler)
 	r.POST("/qr-scan", s.QRCodeScanningHandler)
+	r.POST("/transaction-status", s.TransactionStatusHandler)
 	r.PUT("/payment-callback", s.PaymentCallbackHandler)
 
 	r.POST("/subscription/url", s.SendSubscriptionUrlsHandler)
