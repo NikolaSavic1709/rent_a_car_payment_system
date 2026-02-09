@@ -9,6 +9,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
+
 	"paypal_microservice/internal/database"
 )
 
@@ -20,14 +22,13 @@ func (s *Server) SendCallbackToPSP(payment *database.PayPalPayment, status datab
 			pspURL = "http://nginx/payment-callback"
 		}
 
-		callback := database.PayPalCallback{
-			TransactionID:   payment.TransactionID,
-			MerchantOrderID: payment.MerchantOrderID,
-			Status:          mapPayPalStatusToPSPStatus(status),
-			PayPalOrderID:   payment.PayPalOrderID,
-			Amount:          payment.Amount,
-			Currency:        payment.Currency,
-			PayPalTimestamp: time.Now(),
+		// Use PSP's expected TransactionResponse format
+		callback := PSPTransactionResponse{
+			AcquirerOrderID:   payment.PaymentID,
+			AcquirerTimestamp: time.Now(),
+			MerchantOrderID:   payment.MerchantOrderID,
+			TransactionID:     payment.TransactionID,
+			Status:            mapPayPalStatusToPSPStatus(status),
 		}
 
 		reqBody, err := json.Marshal(callback)
@@ -57,6 +58,15 @@ func (s *Server) SendCallbackToPSP(payment *database.PayPalPayment, status datab
 			log.Printf("PSP callback successful for payment: %s", payment.PaymentID)
 		}
 	}()
+}
+
+// PSPTransactionResponse matches PSP's expected callback format
+type PSPTransactionResponse struct {
+	AcquirerOrderID   uuid.UUID                  `json:"acquirerOrderId"`
+	AcquirerTimestamp time.Time                  `json:"acquirerTimestamp"`
+	MerchantOrderID   uuid.UUID                  `json:"merchantOrderId"`
+	TransactionID     uuid.UUID                  `json:"transactionId"`
+	Status            database.TransactionStatus `json:"status"`
 }
 
 // mapPayPalStatusToPSPStatus maps PayPal payment status to PSP transaction status

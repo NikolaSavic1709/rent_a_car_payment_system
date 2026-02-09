@@ -70,7 +70,7 @@ func (s *Server) PaymentHandler(c *gin.Context) {
 	} else if req.PaymentMethod == "QR" {
 		s.QrCodePaymentHandler(c, transaction.QRRef)
 	} else if req.PaymentMethod == "PAYPAL" {
-		s.PayPalPaymentHandler(c)
+		s.PayPalPaymentHandler(c, transaction.MerchantOrderId, transaction.TransactionId)
 	} else if req.PaymentMethod == "CRYPTO" {
 		s.CryptoPaymentHandler(c, transaction.MerchantOrderId)
 	} else {
