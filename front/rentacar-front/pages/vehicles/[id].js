@@ -36,18 +36,12 @@ export default function Vehicle() {
             method: paymentMethod,
             days: Number(days)
         };
-        // if (paymentMethod===PAYMANT_TYPE.QR){
-        //     window.location.href = "http://localhost:3001/qr";
-        //     return
-        // }
-        if (paymentMethod===PAYMANT_TYPE.CRYPTO){
-            window.location.href = "http://localhost:3001/crypto";
-            return
-        }
+        
         if (paymentMethod===PAYMANT_TYPE.PAYPAL){
             window.location.href = "http://localhost:3001/paypal";
             return
         }
+        
         console.log(payment);
         axios.post(`${BACK_BASE_URL}/vehicles/purchase`, payment)
             .then(response => {

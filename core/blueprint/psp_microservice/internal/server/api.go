@@ -69,13 +69,15 @@ func (s *Server) PaymentHandler(c *gin.Context) {
 		s.CardPaymentHandler(c)
 	} else if req.PaymentMethod == "QR" {
 		s.QrCodePaymentHandler(c, transaction.QRRef)
-	} else if req.PaymentMethod == "paypal" {
+	} else if req.PaymentMethod == "PAYPAL" {
 		s.PayPalPaymentHandler(c)
+	} else if req.PaymentMethod == "CRYPTO" {
+		s.CryptoPaymentHandler(c, transaction.MerchantOrderId)
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Unsupported payment method"})
 	}
 	//todo add cryptocurrency
-	
+
 }
 
 func (s *Server) PaymentCallbackHandler(c *gin.Context) {
@@ -124,9 +126,9 @@ func (s *Server) TransactionStatusHandler(c *gin.Context) {
 }
 
 func generateQRRefFromTimestamp() uint64 {
-    now := time.Now()
-    qrRef := uint64(now.Year()*1e10 + int(now.Month())*1e8 + now.Day()*1e6 +
-        now.Hour()*1e4 + now.Minute()*1e2 + now.Second())
-    qrRef = qrRef*1000 + uint64(now.Nanosecond()/1e6)
-    return qrRef
+	now := time.Now()
+	qrRef := uint64(now.Year()*1e10 + int(now.Month())*1e8 + now.Day()*1e6 +
+		now.Hour()*1e4 + now.Minute()*1e2 + now.Second())
+	qrRef = qrRef*1000 + uint64(now.Nanosecond()/1e6)
+	return qrRef
 }

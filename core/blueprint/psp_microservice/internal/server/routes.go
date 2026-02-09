@@ -11,7 +11,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3001"}, // Add your frontend URL
+		AllowOrigins:     []string{"http://localhost:3001", "http://localhost:3002"}, // Add your frontend URLs
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true, // Enable cookies/auth
@@ -27,6 +27,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.POST("/qr-scan", s.QRCodeScanningHandler)
 	r.POST("/transaction-status", s.TransactionStatusHandler)
 	r.PUT("/payment-callback", s.PaymentCallbackHandler)
+	r.GET("/crypto-payment-details", s.CryptoPaymentDetailsHandler)
+	r.GET("/crypto-status", s.CryptoPaymentStatusHandler)
 
 	r.POST("/subscription/url", s.SendSubscriptionUrlsHandler)
 	r.POST("/subscription", s.SaveSubscriptionForMarchantHandler)

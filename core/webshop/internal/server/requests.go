@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Server) sendPSPRequest(data map[string]interface{}) (map[string]interface{}, error) {
-	pspURL := "http://psp_service:8080/payment" //  PSP URL
+	pspURL := "http://nginx/payment" //  PSP URL
 	fmt.Println("Sending request to PSP...")
 	// Create JSON payload
 	payload, err := json.Marshal(data)
@@ -41,7 +41,7 @@ func (s *Server) sendPSPRequest(data map[string]interface{}) (map[string]interfa
 }
 
 func (s *Server) getSubscriptionUrlFromPSP(data map[string]interface{}) (map[string]interface{}, error) {
-	pspURL := "http://psp_service:8080/subscription/url"
+	pspURL := "http://nginx/subscription/url"
 
 	payload, err := json.Marshal(data)
 	if err != nil {
