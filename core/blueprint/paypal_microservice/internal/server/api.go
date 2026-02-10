@@ -196,8 +196,8 @@ func (s *Server) PaymentSuccessHandler(c *gin.Context) {
 	// Send callback to PSP
 	s.SendCallbackToPSP(payment, database.Completed)
 
-	// Redirect to success page
-	c.Redirect(http.StatusFound, s.getSuccessRedirectURL(payment.PaymentID.String()))
+	// Redirect to success page with paymentId and merchantOrderId
+	c.Redirect(http.StatusFound, s.getSuccessRedirectURL(payment.PaymentID.String(), payment.MerchantOrderID.String()))
 }
 
 // PaymentCancelHandler handles cancelled PayPal payment

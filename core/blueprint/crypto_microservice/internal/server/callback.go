@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"crypto/tls"
 	"crypto_microservice/internal/database"
 	"encoding/json"
 	"fmt"
@@ -11,7 +12,7 @@ import (
 
 func (s *Server) SendCallbackToPSP(payment *database.CryptoPayment) {
 	go func() {
-		pspURL := "http://nginx/payment-callback"
+		pspURL := "https://nginx/payment-callback"
 
 		callback := database.CryptoPaymentCallback{
 			TransactionId:   payment.TransactionId,
@@ -37,7 +38,12 @@ func (s *Server) SendCallbackToPSP(payment *database.CryptoPayment) {
 		}
 		req.Header.Set("Content-Type", "application/json")
 
-		client := &http.Client{Timeout: 10 * time.Second}
+		client := &http.Client{
+			Timeout: 10 * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		}
 		resp, err := client.Do(req)
 		if err != nil {
 			fmt.Printf("Error sending callback to PSP: %v\n", err)

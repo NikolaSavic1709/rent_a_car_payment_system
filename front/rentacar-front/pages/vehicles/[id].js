@@ -37,11 +37,6 @@ export default function Vehicle() {
             days: Number(days)
         };
         
-        if (paymentMethod===PAYMANT_TYPE.PAYPAL){
-            window.location.href = "http://localhost:3001/paypal";
-            return
-        }
-        
         console.log(payment);
         axios.post(`${BACK_BASE_URL}/vehicles/purchase`, payment)
             .then(response => {

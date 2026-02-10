@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,7 +10,7 @@ import (
 )
 
 func (s *Server) sendPSPRequest(data map[string]interface{}) (map[string]interface{}, error) {
-	pspURL := "http://nginx/payment" //  PSP URL
+	pspURL := "https://nginx/payment" //  PSP URL (HTTPS for nginx)
 	fmt.Println("Sending request to PSP...")
 	// Create JSON payload
 	payload, err := json.Marshal(data)
@@ -17,8 +18,15 @@ func (s *Server) sendPSPRequest(data map[string]interface{}) (map[string]interfa
 		return nil, fmt.Errorf("failed to marshal request payload: %v", err)
 	}
 	fmt.Println("Debug: to be sent to PSP")
+
+	// Create HTTP client with TLS config to skip verification (for self-signed certs)
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
 	// Send HTTP request
-	resp, err := http.Post(pspURL, "application/json", bytes.NewBuffer(payload))
+	resp, err := client.Post(pspURL, "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request to PSP: %v", err)
 	}
@@ -41,14 +49,20 @@ func (s *Server) sendPSPRequest(data map[string]interface{}) (map[string]interfa
 }
 
 func (s *Server) getSubscriptionUrlFromPSP(data map[string]interface{}) (map[string]interface{}, error) {
-	pspURL := "http://nginx/subscription/url"
+	pspURL := "https://nginx/subscription/url"
 
 	payload, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request payload: %v", err)
 	}
 
-	resp, err := http.Post(pspURL, "application/json", bytes.NewBuffer(payload))
+	// Create HTTP client with TLS config
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
+	resp, err := client.Post(pspURL, "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request to PSP: %v", err)
 	}
