@@ -15,7 +15,8 @@ COPY ./ngconf /etc/nginx/nginx.conf
 COPY ./resources /var/www/resources
 
 COPY ./encrypt_logs.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/encrypt_logs.sh
+RUN sed -i 's/\r$//' /usr/local/bin/encrypt_logs.sh \
+    && chmod +x /usr/local/bin/encrypt_logs.sh
 RUN mkdir -p /tmp/nginx_logs
 RUN mkdir -p /var/log/nginx
 RUN mkdir -p /var/log/nginx/enc

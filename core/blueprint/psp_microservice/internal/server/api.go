@@ -26,6 +26,46 @@ func (s *Server) NewTransactionHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Transaction created", "transaction": req})
 }
 
+// LoginHandler checks merchant credentials by username and password.
+func (s *Server) LoginHandler(c *gin.Context) {
+	var req struct {
+		Username string `json:"username" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	merchant, err := s.db.CheckMerchantByUsername(req.Username, req.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if merchant == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+}
+
+// GetAllMerchantsHandler returns list of merchants (username and merchant_id).
+func (s *Server) GetAllMerchantsHandler(c *gin.Context) {
+	merchants, err := s.db.GetAllMerchants()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	// Return only username and merchantId for each merchant
+	var out []map[string]interface{}
+	for _, m := range merchants {
+		out = append(out, map[string]interface{}{"username": m.Username, "merchantId": m.MerchantId})
+	}
+	c.JSON(http.StatusOK, gin.H{"merchants": out})
+}
+
 func (s *Server) PaymentHandler(c *gin.Context) {
 	fmt.Println("USAO")
 	var req database.WebShopPaymentRequest

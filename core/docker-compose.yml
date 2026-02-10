@@ -238,10 +238,10 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_SCHEMA: ${DB_SCHEMA}
-    deploy:
-      replicas: 3
+    # deploy:
+    #   replicas: 3
     ports:
-      - "8084-8086:8080"
+      - "8084:8080"
     depends_on:
       psql_bank_gateway:
         condition: service_healthy

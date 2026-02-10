@@ -1,0 +1,160 @@
+PSP
+
+    INSERT INTO merchants (
+        merchant_id,
+        password,
+        salt,
+        success_url,
+        fail_url,
+        error_url,
+        username
+    ) VALUES
+    (
+        '0',
+        'a804f45f599b06023ea47823d7cec076c46c394e41251ab078a0e8834144c55636224b1b2c3dc263aaee67d05f3ce2ec025c55975c9865074a2330492fbbd099',
+        'Ns3QsAPmUaHFe78FIt8ATUWyC9Eiv4nB',
+        NULL,
+        NULL,
+        NULL,
+        'admin'
+    ),
+    (
+        '12345',
+        'a804f45f599b06023ea47823d7cec076c46c394e41251ab078a0e8834144c55636224b1b2c3dc263aaee67d05f3ce2ec025c55975c9865074a2330492fbbd099',
+        'Ns3QsAPmUaHFe78FIt8ATUWyC9Eiv4nB',
+        'http://localhost:3000/payment/success',
+        'http://localhost:3000/payment/fail',
+        'http://localhost:3000/payment/error',
+        'webshop'
+    );
+
+    INSERT INTO subscriptions (
+        subscription_id,
+        merchant_id,
+        method
+    ) VALUES
+    (
+        1,
+        12345,
+        1
+    ),
+    (
+        2,
+        12345,
+        2
+    ),
+    (
+        3,
+        12345,
+        3
+    ),
+    (
+        4,
+        12345,
+        4
+    );
+----------------------------------
+
+BANK GATEWAY
+
+    INSERT INTO merchant_infos (
+        merchant_id,
+        bank_id
+    ) VALUES
+    (
+        12345,
+        1
+    );
+------------------------------------
+
+BANK
+
+    -- Insert into bank_clients
+    INSERT INTO bank_clients (
+        id,
+        name,
+        surname,
+        birthday,
+        email,
+        phone_number
+    ) VALUES
+    (
+        1,
+        'Pera',
+        'Peric',
+        '2006-02-09 14:42:00+00',
+        'pera@gmail.com',
+        '1234567890'
+    ),
+    (
+        2,
+        'Mika',
+        'Mikic',
+        '2006-02-09 14:42:00+00',
+        'mika@gmail.com',
+        '1234567890'
+    );
+
+    -- Insert into bank_accounts
+    INSERT INTO bank_accounts (
+        id,
+        account_number,
+        user_id,
+        balance,
+        currency,
+        date_created,
+        status
+    ) VALUES
+    (
+        1,
+        '10000000000',
+        1,
+        251199.94003295898436,
+        'RSD',
+        '2026-02-09 14:42:00+00',
+        0
+    ),
+    (
+        2,
+        '20000000000',
+        2,
+        248800.05996704101564,
+        'RSD',
+        '2026-02-09 14:42:00+00',
+        0
+    );
+
+    -- Insert into cards
+    INSERT INTO cards (
+        id,
+        bank_account_id,
+        encrypted_pan,
+        masked_pan,
+        expiry_date,
+        card_type,
+        is_tokenized
+    ) VALUES
+    (
+        1,
+        2,
+        '124a47cc66cfffcc81c22a7aa8a11cd1c31ce32e1227638dad73348f6d5b887e8c40a94008d472f02e1d6a9e',
+        '333333************31',
+        '2028-12-01 00:00:00+00',
+        0,
+        TRUE
+    );
+
+    -- Insert into merchants
+    INSERT INTO merchants (
+        merchant_id,
+        bank_account_id
+    ) VALUES
+    (
+        12345,
+        1
+    );
+
+
+
+
+

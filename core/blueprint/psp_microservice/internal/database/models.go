@@ -76,6 +76,7 @@ type TransactionResponse struct {
 }
 
 type Merchant struct {
+	Username 		string `json:"username"`
 	MerchantId        uint   `json:"merchantId"`
 	Password          string `json:"password"`
 	Salt              string `json:"salt"`

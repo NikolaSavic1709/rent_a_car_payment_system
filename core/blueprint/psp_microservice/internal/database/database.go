@@ -30,7 +30,9 @@ type Service interface {
 	// It returns an error if the connection cannot be closed.
 	Close() error
 	CheckMerchant(merchantId uint, password string) (*Merchant, error)
+	CheckMerchantByUsername(username string, password string) (*Merchant, error)
 	GetMerchantRedirectURL(merchantId uint, status TransactionStatus) (string, error)
+	GetAllMerchants() ([]Merchant, error)
 	WriteTransaction(transaction Transaction) error
 	GetTransactionByMerchantOrderId(merchantOrderId uuid.UUID) (PaymentRequest, error)
 	GetRedirectURLByMerchantOrderId(merchantOrderId uuid.UUID) (string, error)
@@ -67,6 +69,29 @@ func (s *service) CheckMerchant(merchantId uint, password string) (*Merchant, er
 		return nil, nil
 	}
 
+	return &merchant, nil
+}
+// CheckMerchantByUsername verifies merchant credentials using username.
+func (s *service) CheckMerchantByUsername(username string, password string) (*Merchant, error) {
+	query := `SELECT merchant_id, password, salt FROM merchants WHERE username = $1`
+	row := s.db.QueryRow(query, username)
+
+	var merchant Merchant
+	err := row.Scan(&merchant.MerchantId, &merchant.Password, &merchant.Salt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	hashedPassword := sha512.Sum512([]byte(password + merchant.Salt))
+	hashedPasswordHex := hex.EncodeToString(hashedPassword[:])
+	if merchant.Password != hashedPasswordHex {
+		return nil, nil
+	}
+
+	merchant.Username = username
 	return &merchant, nil
 }
 func (s *service) GetMerchantRedirectURL(merchantId uint, status TransactionStatus) (string, error) {
@@ -256,6 +281,29 @@ func (s *service) GetSubscriptionsForMerchant(merchantId uint) ([]int, error) {
 	}
 
 	return methods, nil
+}
+
+// GetAllMerchantUsernames returns all merchant usernames from merchants table.
+func (s *service) GetAllMerchants() ([]Merchant, error) {
+	query := `SELECT merchant_id, username FROM merchants WHERE merchant_id <> 0;`
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query merchants: %w", err)
+	}
+	defer rows.Close()
+
+	var merchants []Merchant
+	for rows.Next() {
+		var m Merchant
+		if err := rows.Scan(&m.MerchantId, &m.Username); err != nil {
+			return nil, fmt.Errorf("failed to scan merchant row: %w", err)
+		}
+		merchants = append(merchants, m)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+	return merchants, nil
 }
 
 var (
