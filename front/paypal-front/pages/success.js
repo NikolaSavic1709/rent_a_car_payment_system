@@ -12,6 +12,7 @@ export default function SuccessPage() {
   const [loading, setLoading] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [error, setError] = useState(null);
+  const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
     if (!token && !paymentId) return;
@@ -55,9 +56,27 @@ export default function SuccessPage() {
     checkPaymentStatus();
   }, [token, PayerID, paymentId, router.query.transactionId]);
 
+  // Auto-redirect countdown after payment status is loaded
+  useEffect(() => {
+    if (!loading && paymentStatus) {
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            window.location.href = 'http://localhost:3000';
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [loading, paymentStatus]);
+
   const handleBackToShop = () => {
     // Redirect to webshop or main app
-    window.location.href = 'http://localhost:3001';
+    window.location.href = 'http://localhost:3000';
   };
 
   const statusDisplay = getStatusDisplay(paymentStatus?.status);
@@ -137,12 +156,12 @@ export default function SuccessPage() {
                   onClick={handleBackToShop}
                   className={styles.primaryButton}
                 >
-                  Return to Shop
+                  Return to Shop Now
                 </button>
               </div>
 
               <p className={styles.note}>
-                A confirmation email will be sent to your registered email address.
+                Redirecting to shop in {countdown} seconds...
               </p>
             </div>
           )}

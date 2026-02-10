@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   nginx:
@@ -323,18 +322,18 @@ services:
       APP_ENV: ${PAYPAL_APP_ENV}
       DB_PORT: 5432
       DB_HOST: ${PAYPAL_DB_HOST}
-      DB_DATABASE: ${PAYPAL_DB_DATABASE}
-      DB_USERNAME: ${PAYPAL_DB_USERNAME}
+      DB_NAME: ${PAYPAL_DB_DATABASE}
+      DB_USER: ${PAYPAL_DB_USERNAME}
       DB_PASSWORD: ${PAYPAL_DB_PASSWORD}
       DB_SCHEMA: ${PAYPAL_DB_SCHEMA}
       PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID}
       PAYPAL_SECRET: ${PAYPAL_SECRET}
       PAYPAL_MODE: ${PAYPAL_MODE}
       PSP_CALLBACK_URL: ${PSP_CALLBACK_URL}
-      PAYPAL_RETURN_URL: http://localhost:8088/payment-success
-      PAYPAL_CANCEL_URL: http://localhost:8088/payment-cancel
-      SUCCESS_URL: http://localhost:3001/paypal?status=success
-      CANCEL_URL: http://localhost:3001/paypal?status=cancel
+      PAYPAL_RETURN_URL: ${PAYPAL_RETURN_URL}
+      PAYPAL_CANCEL_URL: ${PAYPAL_CANCEL_URL}
+      SUCCESS_URL: ${SUCCESS_URL}
+      CANCEL_URL: ${CANCEL_URL}
     ports:
       - "8088:8080"
     depends_on:

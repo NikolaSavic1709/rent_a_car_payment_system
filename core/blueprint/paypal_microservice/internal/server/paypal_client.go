@@ -87,12 +87,12 @@ func (p *paypalClient) CreateOrder(amount float64, currency string, description 
 	// Determine return URL based on current host
 	returnURL := os.Getenv("PAYPAL_RETURN_URL")
 	if returnURL == "" {
-		returnURL = "http://localhost:8087/payment-success"
+		returnURL = "http://localhost:8088/payment-success"
 	}
 
 	cancelReturnURL := os.Getenv("PAYPAL_CANCEL_URL")
 	if cancelReturnURL == "" {
-		cancelReturnURL = "http://localhost:8087/payment-cancel"
+		cancelReturnURL = "http://localhost:8088/payment-cancel"
 	}
 
 	// Create purchase units

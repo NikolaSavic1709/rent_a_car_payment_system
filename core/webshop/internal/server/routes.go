@@ -22,6 +22,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 			"http://localhost:3000",
 			"http://localhost",
 			"http://localhost:80",
+			"https://nginx",
+			"https://nginx:443",
 			"http://nginx",
 			"http://nginx:80",
 			"https://localhost",

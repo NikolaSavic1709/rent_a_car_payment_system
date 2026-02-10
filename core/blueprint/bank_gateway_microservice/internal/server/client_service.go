@@ -3,6 +3,7 @@ package server
 import (
 	"bank_gateway_microservice/internal/database"
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -79,7 +80,7 @@ func processBankResponseForPSP(response database.TransactionResponse, bankError 
 	}
 	fmt.Println(string(responseBytes))
 
-	pspURL := "http://nginx/payment-callback"
+	pspURL := "https://nginx/payment-callback"
 	fmt.Println("sss")
 	req, err := http.NewRequest("PUT", pspURL, bytes.NewBuffer(responseBytes))
 	if err != nil {
@@ -89,7 +90,11 @@ func processBankResponseForPSP(response database.TransactionResponse, bankError 
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)

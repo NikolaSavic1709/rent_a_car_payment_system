@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -19,7 +20,7 @@ func (s *Server) SendCallbackToPSP(payment *database.PayPalPayment, status datab
 	go func() {
 		pspURL := os.Getenv("PSP_CALLBACK_URL")
 		if pspURL == "" {
-			pspURL = "http://nginx/payment-callback"
+			pspURL = "https://nginx/payment-callback"
 		}
 
 		// Use PSP's expected TransactionResponse format
@@ -44,7 +45,12 @@ func (s *Server) SendCallbackToPSP(payment *database.PayPalPayment, status datab
 		}
 		req.Header.Set("Content-Type", "application/json")
 
-		client := &http.Client{Timeout: 10 * time.Second}
+		client := &http.Client{
+			Timeout: 10 * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		}
 		resp, err := client.Do(req)
 		if err != nil {
 			log.Printf("Error sending callback to PSP: %v", err)
@@ -84,22 +90,22 @@ func mapPayPalStatusToPSPStatus(status database.PaymentStatus) database.Transact
 }
 
 // getSuccessRedirectURL returns the success redirect URL
-func (s *Server) getSuccessRedirectURL(paymentID string) string {
+func (s *Server) getSuccessRedirectURL(paymentID string, merchantOrderID string) string {
 	successURL := os.Getenv("SUCCESS_URL")
 	if successURL == "" {
-		successURL = "http://localhost:3001/paypal?status=success"
+		successURL = "http://localhost:3003/success"
 	}
-	return fmt.Sprintf("%s&paymentId=%s", successURL, paymentID)
+	return fmt.Sprintf("%s?paymentId=%s&merchantOrderId=%s", successURL, paymentID, merchantOrderID)
 }
 
 // getCancelRedirectURL returns the cancel redirect URL
 func (s *Server) getCancelRedirectURL(reason string) string {
 	cancelURL := os.Getenv("CANCEL_URL")
 	if cancelURL == "" {
-		cancelURL = "http://localhost:3001/paypal?status=cancel"
+		cancelURL = "http://localhost:3003/cancel"
 	}
 	if reason != "" {
-		return fmt.Sprintf("%s&reason=%s", cancelURL, reason)
+		return fmt.Sprintf("%s?reason=%s", cancelURL, reason)
 	}
 	return cancelURL
 }

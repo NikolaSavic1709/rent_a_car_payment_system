@@ -26,13 +26,22 @@ func (s *Server) PayPalPaymentHandler(c *gin.Context, merchantOrderId uuid.UUID,
 		return
 	}
 
+	// Convert currency for PayPal if needed (PayPal doesn't support RSD)
+	amount := float64(transaction.Amount)
+	currency := transaction.Currency
+	if currency == "RSD" {
+		// Convert RSD to USD (approximate rate: 1 USD = 107 RSD)
+		amount = amount / 107.0
+		currency = "USD"
+	}
+
 	// Prepare request for PayPal microservice
 	paypalRequest := PayPalPaymentRequest{
 		TransactionID:   transactionId,
 		MerchantOrderID: merchantOrderId,
 		MerchantID:      transaction.MerchantId,
-		Amount:          float64(transaction.Amount),
-		Currency:        transaction.Currency,
+		Amount:          amount,
+		Currency:        currency,
 		Description:     fmt.Sprintf("Order %s", merchantOrderId.String()),
 	}
 
